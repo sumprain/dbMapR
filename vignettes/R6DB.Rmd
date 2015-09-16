@@ -1,0 +1,62 @@
+---
+title: "R6 classes denoting database structure"
+author: "Dr Suman Kumar"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{R6 classes denoting database structure}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+## Overview of the structure of the database front end system
+
+![Overview of database front end structure](overview.svg)
+
+
+There will be three types of classes:
+
+1. Database
+2. Table
+3. Column
+
+## Column class
+
+### Property
+
+- name
+- name of mother table
+- name of shiny widget (tableName_name)
+- whether PK
+- whether FK (if so):
+    - table name of reference
+    - column name for valCol
+    - column name for textCol
+- type of data
+- isRequired
+- default value
+- whether options (if yes):
+    - values provided by user
+    - if FK, then the details given above
+
+### methods
+
+- initialise: This method is the constructor method which will initialise a new column class with values obtained from database.
+- set_*: These methods will allow the users to set the properties.
+
+## Table class
+
+### Properties
+
+- name
+- namePKColumn
+- names of columns
+- names of tables to which it references
+
+### Methods
+
+- insert
+- alter
+- delete row
+- nextPK: Method which will get next PK value if the column is PK.
+

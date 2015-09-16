@@ -1,0 +1,20 @@
+Package: dbfrontendR
+Type: Package
+Title: Miscellaneous functions for accessing Database and creating front end.
+Version: 0.0.0.0.9000
+Date: 2015-07-01
+Author: Suman Kumar <sumprain@yahoo.com>
+Maintainer: Suman Kumar <sumprain@yahoo.com>
+Description: Miscellaneous functions for accessing Database and creating front end.
+License: What license is it under?
+LazyData: TRUE
+Imports: dplyr,
+    Rcpp,
+    assertthat,
+    RSQLite,
+    RPostgreSQL,
+    R6
+LinkingTo: Rcpp
+Suggests: testthat,
+    knitr
+VignetteBuilder: knitr
