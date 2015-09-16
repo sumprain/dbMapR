@@ -1,0 +1,9 @@
+# dbfrontendR
+
+## Introduction
+
+This package intends to connect DB to R to Shiny Application (Database front end). In process of development.
+
+## Shiny connection
+
+It is intended to work with the Shiny widgets from [shinyDBWidget package](https://github.com/sumprain/shinyDBWidget). Still under development.
