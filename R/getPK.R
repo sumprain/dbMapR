@@ -12,7 +12,9 @@ getPK <- function(src, table) {
 #   1   0   id   integer       0       <NA>  1
 #   2   1 name character       0       <NA>  0
 #
-  #browser()
+  if (!(table %in% dplyr::db_list_tables(src$con)))
+    stop(paste0(table, " is not a table in database."))
+
   if (inherits(src, "src_postgres")) {
     sInit <- "SELECT c.column_name, c.data_type FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name where constraint_type = 'PRIMARY KEY' and tc.table_name =  "
     sSql <- paste0(sInit, " ", dplyr::escape(table))
@@ -25,12 +27,23 @@ getPK <- function(src, table) {
   }
 
   if (all((dim(pk) == c(0,0)))) {
-    return(dplyr::data_frame(table = table, column_name = NA, data_type = NA, nextVal = NA))
+    warning(paste0(table, " does not have a primary key. It is advised that a primary key is present."))
+    return(dplyr::data_frame(column_name = NA, data_type = NA, nextVal = NA))
   } else {
     pkVals <- dplyr::collect(dplyr::tbl(src, table) %>% dplyr::select_(.dots = pk[[1]]))
     if (all((dim(pkVals) == c(0,0)))) {
       pkVals <- numeric()
-    } else pkVals <- pkVals[[1]]
-    return(dplyr::bind_cols(dplyr::data_frame(table = table), pk, dplyr::data_frame(nextVal = nextNumber(pkVals))))  # nextNumber is defined as Cpp function.
+      return(dplyr::bind_cols(pk, dplyr::data_frame(next_val = nextNumber(pkVals))))  # nextNumber is defined as Cpp function.
+    } else {
+      pkVals <- pkVals[[1]]
+      if (is.integer(pkVals)) {
+        return(dplyr::bind_cols(pk, dplyr::data_frame(next_val = nextNumber(pkVals))))  # nextNumber is defined as Cpp function.
+      } else {
+        message(paste0(table, " has primary key values of type: ", pk$data_type, ". User to provide next PK value."))
+        return(dplyr::bind_cols(pk, dplyr::data_frame(next_val = NA)))
+      }
+    }
+
+
   }
 }

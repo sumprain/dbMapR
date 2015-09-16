@@ -1,3 +1,4 @@
+#' @export
 dbDatabaseClass <- R6::R6Class('dbDatabaseClass',
                                public = list(
                                  initialize = function(src) {
@@ -57,7 +58,7 @@ dbDatabaseClass <- R6::R6Class('dbDatabaseClass',
                                  }
                                ))
 
-
+#' @export
 dbTableClass <- R6::R6Class('dbTableClass',
                             public = list(
                               initialize = function(tbl_name, method = c("extract_from_db", "create_from_scratch"), src) {
@@ -80,11 +81,11 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                   df_col <- df_col1 %>% left_join(df_col_pk, by = c("column_name" = "column_name")) %>% left_join(df_col_fk, by = c("column_name" = "column_name"))
                                   df_col[, c("isPK", "isFK")][is.na(df_col[, c("isPK", "isFK")])] <- 0
                                   df_col[is.na(df_col)] <- ""
-                                  #browser()
-                                  private$fill_with_cols(df_col)
-                                  self$set_namePKColumn(df_col[df_col$isPK == 1, "column_name", drop = TRUE])
+                                  self$set_dfPKColumn(getPK(src, self$get_name()))
                                   self$set_nameColumns(df_col[, "column_name", drop = TRUE])
                                   self$set_dfForeignKey(df_col_fk)
+                                  private$fill_with_cols(df_col)
+
                                 } else if (method == "create_from_scratch") {
                                   # TODO: fill later on
                                 }
@@ -97,8 +98,8 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                 invisible(self)
                               },
 
-                              set_namePKColumn = function(namePKColumn) {
-                                private$namePKColumn <- namePKColumn
+                              set_dfPKColumn = function(dfPKColumn) {       # contains next PK value also. dataframe with column_name, data_type, next_val
+                                private$dfPKColumn <- dfPKColumn
                                 invisible(self)
                               },
 
@@ -120,8 +121,8 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                 return(private$columns)
                               },
 
-                              get_namePKColumn = function() {
-                                return(private$namePKColumn)
+                              get_dfPKColumn = function() {
+                                return(private$dfPKColumn)
                               },
 
                               get_nameColumns = function() {
@@ -139,7 +140,7 @@ dbTableClass <- R6::R6Class('dbTableClass',
 
                               name = NULL,               # database name of table
                               columns = list(),          # list containing the columns (dbColumnClass)
-                              namePKColumn = NULL,       # name of PK column
+                              dfPKColumn = NULL,       # name of PK column
                               nameColumns = NULL,        # vector representing name of columns
                               dfForeignKey = NULL,       # dataframe containing the FK details with col names: col_name, foreign_tbl_name, foreign_col_name
 
@@ -151,6 +152,7 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                   private$columns[[intdf[["column_name"]]]] <- dbColumnClass$new(name = intdf[["column_name"]],
                                                     nameTable = self$get_name(),
                                                     isPK = as.integer(intdf[["isPK"]]),
+                                                    PKNextVal = private$dfPKColumn[["next_val"]],
                                                     isFK = as.integer(intdf[["isFK"]]),
                                                     refTable = intdf[["foreign_table_name"]],
                                                     refCol = intdf[["foreign_column_name"]],
@@ -162,13 +164,14 @@ dbTableClass <- R6::R6Class('dbTableClass',
                               }
                             ))
 
-
+#' @export
 dbColumnClass <- R6::R6Class('dbColumnClass',
                         public = list(
 
                           initialize = function(name,
                                                 nameTable,
                                                 isPK = NULL,
+                                                PKNextVal = NULL,
                                                 isFK = NULL,
                                                 refTable = NULL,
                                                 refCol = NULL,
@@ -180,6 +183,7 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                             self$set_name(name)
                             self$set_nameTable(nameTable)
                             self$set_isPK(isPK)
+                            self$set_PKNextVal(PKNextVal)
                             self$set_isFK(isFK)
                             self$set_refTable(refTable)
                             self$set_refCol(refCol)
@@ -206,6 +210,13 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                             private$isPK <- 1*isPK
                             invisible(self)
                           },
+
+                        set_PKNextVal = function(PKNextVal) {
+                          if (self$get_isPK() == 1) {
+                            private$PKNextVal <- PKNextVal
+                          }
+                          invisible(self)
+                        },
 
                         set_isFK = function(isFK) {
                             stopifnot(is.logical(isFK) | isFK %in% c(0, 1))
@@ -291,6 +302,10 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                             return(private$isPK)
                         },
 
+                        get_PKNextVal = function() {
+                            return(private$PKNextVal)
+                        },
+
                         get_isFK = function() {
                             return(private$isFK)
                         },
@@ -335,6 +350,7 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           name = NULL,         # database name of column
                           nameTable = NULL,    # database name of table which contains the column
                           isPK = NULL,         # Is the column primary key column (TRUE, FALSE)
+                          PKNextVal = NULL,
                           isFK = NULL,         # Is the colum foreign key column (TRUE, FALSE)
                           refTable = NULL,     # If FK, database name of the referenced table (we will assume that the referenced column is                                                   the PK of refTable)
                           refCol = NULL,       # name of the PK column of FK table

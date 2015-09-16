@@ -118,10 +118,10 @@ getKeyInfo <- function(src, key_name = c("PRIMARY KEY", "FOREIGN KEY"), tbl_name
 
       } else {
         if (key_name == "PRIMARY KEY") {
-          df <- df %>% dplyr::select_("column_name") %>% unique %>% dplyr::mutate_(isPK = rep(1, length(.$column_name)))
+          df <- df %>% dplyr::select_("column_name") %>% unique %>% dplyr::mutate_(isPK = ~ rep(1, nrow(.)))
 
         } else {
-          df <- df %>% dplyr::select_("column_name", "foreign_table_name", "foreign_column_name") %>% unique %>% dplyr::mutate_(isFK = rep(1, length(.$column_name)))
+          df <- df %>% dplyr::select_("column_name", "foreign_table_name", "foreign_column_name") %>% unique %>% dplyr::mutate_(isFK = ~ rep(1, nrow(.)))
         }
       }
   }
