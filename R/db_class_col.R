@@ -1,170 +1,4 @@
 #' @export
-dbDatabaseClass <- R6::R6Class('dbDatabaseClass',
-                               public = list(
-                                 initialize = function(src) {
-                                   self$set_connection(src)
-                                   self$set_name(src$info$dbname)
-                                   self$set_nameTables(dplyr::db_list_tables(src$con))
-                                   private$populateTables(private$connection, private$nameTables)
-                                   reg.finalizer(self, function(self) self$disconnect(), onexit = TRUE)
-                                 },
-
-                                 set_name = function(name) {
-                                   private$name <- name
-                                   invisible(self)
-                                 },
-
-                                 set_connection = function(src) {
-                                   stopifnot(inherits(src, "src_postgres"))
-                                   private$connection <- src
-                                   invisible(self)
-                                 },
-
-                                 set_nameTables = function(nameTables) {
-                                   private$nameTables <- nameTables
-                                   invisible(self)
-                                 },
-
-                                 get_name = function() {
-                                   return(private$name)
-                                 },
-
-                                 get_nameTables = function() {
-                                   return(private$nameTables)
-                                 },
-
-                                 get_tables = function() {
-                                  return(private$tables)
-                                 },
-
-                                 disconnect = function() {
-                                   if (inherits(self$connection, "src_sqlite")) {
-                                     RSQLite::dbDisconnect(self$connection$con)
-                                   } else if (inherits(self$connection, "src_postgres")) {
-                                     RPostgreSQL::dbDisconnect(self$connection$con)
-                                     private$connection <- NULL
-                                   }
-                                 }),
-                               private = list(
-                                 name = NULL,             # name of database
-                                 connection = NULL,       # src object from dplyr
-                                 tables = list(),         # list of tables in database
-                                 nameTables = NULL,        # character vector of names of tables
-
-                                 populateTables = function(src, nameTables) {
-                                   for (i in 1:length(nameTables)) {
-                                     private$tables[[nameTables[i]]] <- dbTableClass$new(nameTables[i], "extract_from_db", src)
-                                   }
-                                 }
-                               ))
-
-#' @export
-dbTableClass <- R6::R6Class('dbTableClass',
-                            public = list(
-                              initialize = function(tbl_name, method = c("extract_from_db", "create_from_scratch"), src) {
-                                #browser()
-                                if (!(tbl_name %in% dplyr::db_list_tables(src$con)))
-                                  stop(paste0(tbl_name, " not present in the DB."))
-
-                                self$set_name(tbl_name)
-                                if (!is.null(method)) {
-                                  method <- match.arg(method)
-                                } else {
-                                  method <- "extract_from_db"        # we will change this part of code later on when we add other methods
-                                }
-
-                                if (method == "extract_from_db") {
-                                  df_col1 <- getColumnInfo(src, self$get_name())
-                                  df_col_pk <- getKeyInfo(src, "PRIMARY KEY", self$get_name())
-                                  df_col_fk <- getKeyInfo(src, "FOREIGN KEY", self$get_name())
-
-                                  df_col <- df_col1 %>% left_join(df_col_pk, by = c("column_name" = "column_name")) %>% left_join(df_col_fk, by = c("column_name" = "column_name"))
-                                  df_col[, c("isPK", "isFK")][is.na(df_col[, c("isPK", "isFK")])] <- 0
-                                  df_col[is.na(df_col)] <- ""
-                                  self$set_dfPKColumn(getPK(src, self$get_name()))
-                                  self$set_nameColumns(df_col[, "column_name", drop = TRUE])
-                                  self$set_dfForeignKey(df_col_fk)
-                                  private$fill_with_cols(df_col)
-
-                                } else if (method == "create_from_scratch") {
-                                  # TODO: fill later on
-                                }
-                                invisible(self)
-
-                              },
-
-                              set_name = function(name) {
-                                private$name <- as.character(name)
-                                invisible(self)
-                              },
-
-                              set_dfPKColumn = function(dfPKColumn) {       # contains next PK value also. dataframe with column_name, data_type, next_val
-                                private$dfPKColumn <- dfPKColumn
-                                invisible(self)
-                              },
-
-                              set_nameColumns = function(nameColumns) {
-                                private$nameColumns <- nameColumns
-                                invisible(self)
-                              },
-
-                              set_dfForeignKey = function(dfForeignKey) {
-                                private$dfForeignKey <- dfForeignKey
-                                invisible(self)
-                              },
-
-                              get_name = function() {
-                                return(private$name)
-                              },
-
-                              get_columns = function() {
-                                return(private$columns)
-                              },
-
-                              get_dfPKColumn = function() {
-                                return(private$dfPKColumn)
-                              },
-
-                              get_nameColumns = function() {
-                                return(private$nameColumns)
-                              },
-
-                              get_dfForeignKey = function() {
-                                return(private$dfForeignKey)
-                              },
-
-                              insertIntoDB = function() {},
-                              updateToDB = function() {},
-                              deleteRow = function() {}
-                            ), private = list(
-
-                              name = NULL,               # database name of table
-                              columns = list(),          # list containing the columns (dbColumnClass)
-                              dfPKColumn = NULL,       # name of PK column
-                              nameColumns = NULL,        # vector representing name of columns
-                              dfForeignKey = NULL,       # dataframe containing the FK details with col names: col_name, foreign_tbl_name, foreign_col_name
-
-                              fill_with_cols = function(df_col) {
-
-                                for (i in 1:nrow(df_col)) {
-                                  intdf <- df_col[i, ]
-                                  intdf[["udt_name"]] <- change_data_type(match_text(intdf[["udt_name"]]))
-                                  private$columns[[intdf[["column_name"]]]] <- dbColumnClass$new(name = intdf[["column_name"]],
-                                                    nameTable = self$get_name(),
-                                                    isPK = as.integer(intdf[["isPK"]]),
-                                                    PKNextVal = private$dfPKColumn[["next_val"]],
-                                                    isFK = as.integer(intdf[["isFK"]]),
-                                                    refTable = intdf[["foreign_table_name"]],
-                                                    refCol = intdf[["foreign_column_name"]],
-                                                    typeData = intdf[["udt_name"]],
-                                                    isRequired = 1*(intdf[["is_nullable"]] == "NO"),
-                                                    defaultVal = intdf[["column_default"]])
-                                }
-                                invisible(NULL)
-                              }
-                            ))
-
-#' @export
 dbColumnClass <- R6::R6Class('dbColumnClass',
                         public = list(
 
@@ -175,6 +9,8 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                                                 isFK = NULL,
                                                 refTable = NULL,
                                                 refCol = NULL,
+                                                update_rule = NULL,
+                                                delete_rule = NULL,
                                                 typeData = NULL,
                                                 isRequired = NULL,
                                                 defaultVal = NULL,
@@ -187,6 +23,8 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                             self$set_isFK(isFK)
                             self$set_refTable(refTable)
                             self$set_refCol(refCol)
+                            self$set_updateRule(update_rule)
+                            self$set_deleteRule(delete_rule)
                             self$set_typeData(typeData)
                             self$set_isRequired(isRequired)
                             self$set_defaultVal(defaultVal)
@@ -233,6 +71,34 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                             private$refCol <- as.character(refCol)
                             invisible(self)
                           },
+
+                        set_updateRule = function(update_rule) {
+
+                          if (!is.null(update_rule) && (update_rule != "")) {
+                            if (!(update_rule %in% c("CASCADE", "NO ACTION", "SET NULL"))) {
+                              warning(paste0("update_rule should be one of the CASCADE, NO ACTION, SET NULL for ", self$get_nameTable(), ": ", self$get_name()))
+                              private$updateRule <- NULL
+                            } else {
+                              private$updateRule <- update_rule
+                            }
+                          }
+
+                          invisible(self)
+                        },
+
+                      set_deleteRule = function(delete_rule) {
+
+                          if (!is.null(delete_rule) && (delete_rule != "")) {
+                            if (!(delete_rule %in% c("CASCADE", "NO ACTION", "SET NULL"))) {
+                              warning(paste0("update_rule should be one of the CASCADE, NO ACTION, SET NULL for ", self$get_nameTable(), ": ", self$get_name()))
+                              private$deleteRule <- NULL
+                            } else {
+                              private$deleteRule <- delete_rule
+                            }
+                          }
+
+                          invisible(self)
+                        },
 
                         set_typeData = function(typeData = c("character", "numeric", "integer", "date", "logical", "TIMESTAMP", "SERIAL")) {
                             stopifnot(length(typeData) == 1)
@@ -318,6 +184,14 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                             return(private$refCol)
                         },
 
+                        get_updateRule = function() {
+                          return(private$updateRule)
+                        },
+
+                        get_deleteRule = function() {
+                          return(private$deleteRule)
+                        },
+
                         get_typeData = function() {
                             return(private$typeData)
                         },
@@ -354,6 +228,8 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           isFK = NULL,         # Is the colum foreign key column (TRUE, FALSE)
                           refTable = NULL,     # If FK, database name of the referenced table (we will assume that the referenced column is                                                   the PK of refTable)
                           refCol = NULL,       # name of the PK column of FK table
+                          updateRule = NULL,
+                          deleteRule = NULL,
                           typeData = NULL,     # Character vector representing the type of data which will be stored in the column (one of the previously set values only)
                           isRequired = NULL,   # Whether the column can be kept empty
                           defaultVal = NULL,   # Default value of the column

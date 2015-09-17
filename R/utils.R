@@ -103,7 +103,7 @@ getKeyInfo <- function(src, key_name = c("PRIMARY KEY", "FOREIGN KEY"), tbl_name
     if (key_name == "PRIMARY KEY") {
       sSQL1 <- "SELECT tc.table_name, kcu.column_name FROM information_schema.table_constraints AS tc JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name WHERE constraint_type = "
     } else {
-      sSQL1 <- "SELECT tc.constraint_name, tc.table_name, kcu.column_name, ccu.table_name AS foreign_table_name, ccu.column_name AS foreign_column_name FROM information_schema.table_constraints AS tc JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name WHERE constraint_type = "
+      sSQL1 <- "SELECT tc.constraint_name, tc.table_name, kcu.column_name, ccu.table_name AS foreign_table_name, ccu.column_name AS foreign_column_name, rc.update_rule As update_rule, rc.delete_rule AS delete_rule FROM information_schema.table_constraints AS tc JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name JOIN information_schema.referential_constraints AS rc ON rc.constraint_name = tc.constraint_name WHERE constraint_type = "
     }
 
       df <- RPostgreSQL::dbGetQuery(src$con, paste0(sSQL1, dplyr::escape(key_name), sSQL2, dplyr::escape(tbl_name)))
@@ -113,7 +113,7 @@ getKeyInfo <- function(src, key_name = c("PRIMARY KEY", "FOREIGN KEY"), tbl_name
         if (key_name == "PRIMARY KEY") {
           df <- null_df_to_na(df, c("column_name", "isPK"))
         } else {
-          df <- null_df_to_na(df, c("column_name", "foreign_table_name", "foreign_column_name", "isFK"))
+          df <- null_df_to_na(df, c("column_name", "foreign_table_name", "foreign_column_name", "update_rule", "delete_rule", "isFK"))
         }
 
       } else {
@@ -121,7 +121,7 @@ getKeyInfo <- function(src, key_name = c("PRIMARY KEY", "FOREIGN KEY"), tbl_name
           df <- df %>% dplyr::select_("column_name") %>% unique %>% dplyr::mutate_(isPK = ~ rep(1, nrow(.)))
 
         } else {
-          df <- df %>% dplyr::select_("column_name", "foreign_table_name", "foreign_column_name") %>% unique %>% dplyr::mutate_(isFK = ~ rep(1, nrow(.)))
+          df <- df %>% dplyr::select_("column_name", "foreign_table_name", "foreign_column_name", "update_rule", "delete_rule") %>% unique %>% dplyr::mutate_(isFK = ~ rep(1, nrow(.)))
         }
       }
   }
@@ -169,3 +169,5 @@ null_df_to_na <- function(df, col_names) {
     return(dplyr::as_data_frame(setNames(as.list(rep(NA_character_, length(col_names))), col_names)))
   } else return(df)
 }
+
+# ----------------------------------------------

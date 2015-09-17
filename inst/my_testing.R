@@ -124,3 +124,25 @@ dfx <- data_frame(a = 1:5, b = letters[1:5])
 dfy <- data_frame()
 bind_rows(dfy, data_frame(a = NA, c = NA))
 left_join(dfx, dfy, by = c("a" = "a"))
+
+
+# getting on update and on delete rules
+
+# information_schema.referential_constraints
+
+## constraint_name
+## update_rule, delete_rule
+
+src <- src_postgres(dbname = "patient_hemat",user = "mom",password = "docpapu2001")
+sSQL1 <- "SELECT tc.constraint_name, tc.table_name, kcu.column_name, ccu.table_name AS foreign_table_name, ccu.column_name AS foreign_column_name FROM information_schema.table_constraints AS tc JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name WHERE constraint_type = "
+
+sSQL1 <- "SELECT tc.constraint_name, tc.table_name, kcu.column_name, ccu.table_name AS foreign_table_name, ccu.column_name AS foreign_column_name, rc.update_rule As update_rule, rc.delete_rule AS delete_rule FROM information_schema.table_constraints AS tc JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name JOIN information_schema.referential_constraints AS rc ON rc.constraint_name = tc.constraint_name WHERE constraint_type = "
+
+sSQL2 <- " AND tc.table_name = "
+
+tbls <- db_list_tables(src$con)
+
+for (i in tbls) {
+  print(RPostgreSQL::dbGetQuery(src$con, paste0(sSQL1, dplyr::escape("FOREIGN KEY"), sSQL2, dplyr::escape(i))))
+  cat("\n\n")
+}
