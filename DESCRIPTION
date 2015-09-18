@@ -13,7 +13,8 @@ Imports: dplyr,
     assertthat,
     RSQLite,
     RPostgreSQL,
-    R6
+    R6,
+    lubridate
 LinkingTo: Rcpp
 Suggests: testthat,
     knitr

@@ -14,8 +14,10 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                                                 typeData = NULL,
                                                 isRequired = NULL,
                                                 defaultVal = NULL,
-                                                cacheVal = 5) {
+                                                date_input = c("dmy", "mdy", "ymd"),
+                                                cacheVal = 5L) {
 
+                            private$date_input <- match.arg(date_input)
                             self$set_name(name)
                             self$set_nameTable(nameTable)
                             self$set_isPK(isPK)
@@ -136,8 +138,14 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
 
                         add_valToDB = function(val) {
 
-                          # TODO: Add validation code for checking consistency of the inputted val against typeData.
-                          private$valToDB <- add_val_to_list(private$valToDB, val, id, private$cacheVal)
+                          val <- switch(private$typeData,
+                                        date = formatted_date(val, private$date_input),
+                                        numeric = as.numeric(val),
+                                        integer = as.integer(val),
+                                        character = as.character(val),
+                                        logical = as.logical(val))
+
+                          private$valToDB <- val
                           invisible(self)
                         },
 
@@ -212,12 +220,8 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           }
                         },
 
-                        get_valToDB = function(id = NULL) {
-                          if (is.null(id)) {
-                            return(private$valToDB)
-                          } else {
-                            return(private$valToDB[id])
-                          }
+                        get_valToDB = function() {
+                          return(private$valToDB)
                         }),
 
                         private = list(
@@ -234,8 +238,9 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           isRequired = NULL,   # Whether the column can be kept empty
                           defaultVal = NULL,   # Default value of the column
                           valFromDB = list(),    # vector of values from database (result of some query)
-                          valToDB = list(),      # vector of values from front (to be inserted into database)
-                          cacheVal = NULL      # integer denoting number of list of values to be stored
+                          valToDB = NULL,      # vector of values from front (to be inserted into database)
+                          cacheVal = NULL,      # integer denoting number of list of values to be stored
+                          date_input = NULL
                     ))
 
 

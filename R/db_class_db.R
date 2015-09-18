@@ -1,11 +1,12 @@
 #' @export
 dbDatabaseClass <- R6::R6Class('dbDatabaseClass',
                                public = list(
-                                 initialize = function(src) {
+                                 initialize = function(src, date_input = c("dmy", "mdy", "ymd")) {
+                                   date_input <- match.arg(date_input)
                                    self$set_connection(src)
                                    self$set_name(src$info$dbname)
                                    self$set_nameTables(dplyr::db_list_tables(src$con))
-                                   private$populateTables(private$connection, private$nameTables)
+                                   private$populateTables(private$connection, private$nameTables, date_input)
                                    reg.finalizer(self, function(self) self$disconnect(), onexit = TRUE)
                                  },
 
@@ -51,9 +52,9 @@ dbDatabaseClass <- R6::R6Class('dbDatabaseClass',
                                  tables = list(),         # list of tables in database
                                  nameTables = NULL,        # character vector of names of tables
 
-                                 populateTables = function(src, nameTables) {
+                                 populateTables = function(src, nameTables, date_input) {
                                    for (i in 1:length(nameTables)) {
-                                     private$tables[[nameTables[i]]] <- dbTableClass$new(nameTables[i], "extract_from_db", src)
+                                     private$tables[[nameTables[i]]] <- dbTableClass$new(nameTables[i], "extract_from_db", src, date_input)
                                    }
                                  }
                                ))

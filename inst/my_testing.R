@@ -146,3 +146,12 @@ for (i in tbls) {
   print(RPostgreSQL::dbGetQuery(src$con, paste0(sSQL1, dplyr::escape("FOREIGN KEY"), sSQL2, dplyr::escape(i))))
   cat("\n\n")
 }
+
+# understanding date formatting
+
+x <- "2015/09/08"
+is.Date(x)
+
+is.Date(ymd(x))
+
+as.Date(35, origin= "2015/09/09") #format = "%d/%m/%Y")

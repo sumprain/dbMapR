@@ -76,8 +76,18 @@ empty_list = function(list) {
 # LIST MANIPULATION FUNCTIONS END -------------------
 #----------------------------------------------------
 
-create_id <- function() {
-  return(paste0(format(Sys.time(), "%Y%m%d%H%M%S"), abs(round(stats::rnorm(n = 1,mean = 10,sd = 10),digits = 0))))
+cur_timestamp <- function(digits = 3L) {
+  options(digits.secs = digits)
+  res <- format(Sys.time(), "%Y%m%d%H%M%OS")
+  options(digits.secs = NULL)
+  return(res)
+
+}
+
+#---------------------------------------------------
+
+uid <- function(digits = 16L) {
+  return(paste0(sample(c(as.character(0:9), letters[1:6]),size = digits, replace = TRUE), collapse = ""))
 }
 
 #---------------------------------------------------
@@ -171,3 +181,23 @@ null_df_to_na <- function(df, col_names) {
 }
 
 # ----------------------------------------------
+
+formatted_date <- function(entry, t_format = c("dmy", "mdy", "ymd")) {
+
+  # problem is that if i enter "2015/02/30" as entry (wrong entry), ymd makes it to "2015-03-02".
+
+  t_format <- match.arg(t_format)
+  #entry <- gsub("[^[:alnum:]]", "/", entry)
+  f <- switch(t_format,
+                   dmy = lubridate::dmy,
+                   mdy = lubridate::mdy,
+                   ymd = lubridate::ymd)
+
+  char_date <- as.character(f(entry))
+
+  if (is.na(char_date))
+    stop("All date formats failed to parse. No formats found")
+
+  return(char_date)
+
+}

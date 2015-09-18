@@ -1,11 +1,11 @@
 #' @export
 dbTableClass <- R6::R6Class('dbTableClass',
                             public = list(
-                              initialize = function(tbl_name, method = c("extract_from_db", "create_from_scratch"), src) {
+                              initialize = function(tbl_name, method = c("extract_from_db", "create_from_scratch"), src, date_input = c("dmy", "mdy", "ymd")) {
                                 #browser()
                                 if (!(tbl_name %in% dplyr::db_list_tables(src$con)))
                                   stop(paste0(tbl_name, " not present in the DB."))
-
+                                date_input <- match.arg(date_input)
                                 self$set_name(tbl_name)
                                 if (!is.null(method)) {
                                   method <- match.arg(method)
@@ -24,7 +24,7 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                   self$set_dfPKColumn(getPK(src, self$get_name()))
                                   self$set_nameColumns(df_col[, "column_name", drop = TRUE])
                                   self$set_dfForeignKey(df_col_fk)
-                                  private$fill_with_cols(df_col)
+                                  private$fill_with_cols(df_col, date_input)
 
                                 } else if (method == "create_from_scratch") {
                                   # TODO: fill later on
@@ -84,7 +84,7 @@ dbTableClass <- R6::R6Class('dbTableClass',
                               nameColumns = NULL,        # vector representing name of columns
                               dfForeignKey = NULL,       # dataframe containing the FK details with col names: col_name, foreign_tbl_name, foreign_col_name
 
-                              fill_with_cols = function(df_col) {
+                              fill_with_cols = function(df_col, date_input) {
 
                                 for (i in 1:nrow(df_col)) {
                                   intdf <- df_col[i, ]
@@ -100,7 +100,8 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                           delete_rule = intdf[["delete_rule"]],
                                           typeData = intdf[["udt_name"]],
                                           isRequired = 1 * (intdf[["is_nullable"]] == "NO"),
-                                          defaultVal = intdf[["column_default"]])
+                                          defaultVal = intdf[["column_default"]],
+                                          date_input = date_input)
                                 }
                                 invisible(NULL)
                               }
