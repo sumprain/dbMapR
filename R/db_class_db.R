@@ -1,12 +1,18 @@
 #' @export
 dbDatabaseClass <- R6::R6Class('dbDatabaseClass',
                                public = list(
-                                 initialize = function(src, date_input = c("dmy", "mdy", "ymd")) {
+                                 initialize = function(src, date_input = c("dmy", "mdy", "ymd"), method = c("extract_from_db", "create_from_scratch")) {
                                    date_input <- match.arg(date_input)
+                                   method <- match.arg(method)
+                                   private$method <- method
                                    self$set_connection(src)
                                    self$set_name(src$info$dbname)
-                                   self$set_nameTables(dplyr::db_list_tables(src$con))
-                                   private$populateTables(private$connection, private$nameTables, date_input)
+
+                                   if (private$method == "extract_from_db") {
+                                     self$set_nameTables(dplyr::db_list_tables(src$con))
+                                     private$populateTables(private$connection, private$nameTables, date_input, private$method)
+                                   }
+
                                    reg.finalizer(self, function(self) self$disconnect(), onexit = TRUE)
                                  },
 
@@ -51,10 +57,11 @@ dbDatabaseClass <- R6::R6Class('dbDatabaseClass',
                                  connection = NULL,       # src object from dplyr
                                  tables = list(),         # list of tables in database
                                  nameTables = NULL,        # character vector of names of tables
+                                 method = NULL,
 
-                                 populateTables = function(src, nameTables, date_input) {
+                                 populateTables = function(src, nameTables, date_input, method) {
                                    for (i in 1:length(nameTables)) {
-                                     private$tables[[nameTables[i]]] <- dbTableClass$new(nameTables[i], "extract_from_db", src, date_input)
+                                     private$tables[[nameTables[i]]] <- dbTableClass$new(nameTables[i], method, src, date_input)
                                    }
                                  }
                                ))

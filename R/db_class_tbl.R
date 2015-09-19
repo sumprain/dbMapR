@@ -7,13 +7,11 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                   stop(paste0(tbl_name, " not present in the DB."))
                                 date_input <- match.arg(date_input)
                                 self$set_name(tbl_name)
-                                if (!is.null(method)) {
-                                  method <- match.arg(method)
-                                } else {
-                                  method <- "extract_from_db"        # we will change this part of code later on when we add other methods
-                                }
 
-                                if (method == "extract_from_db") {
+                                method <- match.arg(method)
+                                private$method <- method
+
+                                if (private$method == "extract_from_db") {
                                   df_col1 <- getColumnInfo(src, self$get_name())
                                   df_col_pk <- getKeyInfo(src, "PRIMARY KEY", self$get_name())
                                   df_col_fk <- getKeyInfo(src, "FOREIGN KEY", self$get_name())
@@ -24,9 +22,9 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                   self$set_dfPKColumn(getPK(src, self$get_name()))
                                   self$set_nameColumns(df_col[, "column_name", drop = TRUE])
                                   self$set_dfForeignKey(df_col_fk)
-                                  private$fill_with_cols(df_col, date_input)
+                                  private$fill_with_cols(df_col, date_input, method)
 
-                                } else if (method == "create_from_scratch") {
+                                } else if (private$method == "create_from_scratch") {
                                   # TODO: fill later on
                                 }
                                 invisible(self)
@@ -83,8 +81,9 @@ dbTableClass <- R6::R6Class('dbTableClass',
                               dfPKColumn = NULL,       # name of PK column
                               nameColumns = NULL,        # vector representing name of columns
                               dfForeignKey = NULL,       # dataframe containing the FK details with col names: col_name, foreign_tbl_name, foreign_col_name
+                              method = NULL,
 
-                              fill_with_cols = function(df_col, date_input) {
+                              fill_with_cols = function(df_col, date_input, method) {
 
                                 for (i in 1:nrow(df_col)) {
                                   intdf <- df_col[i, ]
@@ -101,7 +100,8 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                           typeData = intdf[["udt_name"]],
                                           isRequired = 1 * (intdf[["is_nullable"]] == "NO"),
                                           defaultVal = intdf[["column_default"]],
-                                          date_input = date_input)
+                                          date_input = date_input,
+                                          method = method)
                                 }
                                 invisible(NULL)
                               }

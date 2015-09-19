@@ -15,9 +15,11 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                                                 isRequired = NULL,
                                                 defaultVal = NULL,
                                                 date_input = c("dmy", "mdy", "ymd"),
+                                                method = c("create_from_scratch", "extract_from_db"),
                                                 cacheVal = 5L) {
 
                             private$date_input <- match.arg(date_input)
+                            private$method <- match.arg(method)
                             self$set_name(name)
                             self$set_nameTable(nameTable)
                             self$set_isPK(isPK)
@@ -115,20 +117,25 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           },
 
                         set_defaultVal = function(defaultVal) {
-                            if (is.null(private$typeData)) {
-                              private$defaultVal <- as.character(defaultVal)
-                            } else {
-                              defaultVal <- switch(private$typeData,
-                                                   character = ,
-                                                   date = as.character(defaultVal),
-                                                   numeric = as.numeric(defaultVal),
-                                                   integer = as.integer(defaultVal),
-                                                   logical = as.logical(defaultVal),
-                                                   SERIAL = ,
-                                                   TIMESTAMP = NULL)
+
+                            if (private$method == "extract_from_db") {
                               private$defaultVal <- defaultVal
+                            } else {
+                              if (is.null(private$typeData)) {
+                                private$defaultVal <- as.character(defaultVal)
+                              } else if (private$method == "create_from_scratch") {
+                                defaultVal <- switch(private$typeData,
+                                                     character = ,
+                                                     date = formatted_date(defaultVal),
+                                                     numeric = as.numeric(defaultVal),
+                                                     integer = as.integer(defaultVal),
+                                                     logical = as.logical(defaultVal),
+                                                     SERIAL = ,
+                                                     TIMESTAMP = NULL)
+                                private$defaultVal <- defaultVal
+                              }
                             }
-                            invisible(self)
+                          invisible(self)
                           },
 
                         add_valFromDB = function(val) {
@@ -138,6 +145,11 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
 
                         add_valToDB = function(val) {
 
+                          if (is.na(val)) {
+                            private$valToDB <- NA
+                            invisible(self)
+                          }
+
                           val <- switch(private$typeData,
                                         date = formatted_date(val, private$date_input),
                                         numeric = as.numeric(val),
@@ -145,6 +157,7 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                                         character = as.character(val),
                                         logical = as.logical(val))
 
+                          val <- na_error(val, paste0(private$nameTable, "-", private$name, ". Format is not ", private$typeData))
                           private$valToDB <- val
                           invisible(self)
                         },
@@ -240,7 +253,8 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           valFromDB = list(),    # vector of values from database (result of some query)
                           valToDB = NULL,      # vector of values from front (to be inserted into database)
                           cacheVal = NULL,      # integer denoting number of list of values to be stored
-                          date_input = NULL
+                          date_input = NULL,
+                          method = NULL
                     ))
 
 

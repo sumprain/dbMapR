@@ -77,6 +77,7 @@ empty_list = function(list) {
 #----------------------------------------------------
 
 cur_timestamp <- function(digits = 3L) {
+
   options(digits.secs = digits)
   res <- format(Sys.time(), "%Y%m%d%H%M%OS")
   options(digits.secs = NULL)
@@ -95,8 +96,9 @@ uid <- function(digits = 16L) {
 getColumnInfo <- function(src, tbl_name) {
   # src: src of dplyr
   if (inherits(src, "src_postgres")) {
-    dfCol <- RPostgreSQL::dbGetQuery(src$con, paste0("SELECT column_name, is_nullable, udt_name, column_default FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = ", dplyr::escape(tbl_name)))
+    dfCol <- RPostgreSQL::dbGetQuery(src$con, paste0("SELECT column_name, is_nullable, udt_name, column_default, character_maximum_length, numeric_precision FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = ", dplyr::escape(tbl_name)))
   }
+  dfCol <- dfCol %>% dplyr::mutate(var_size = ifelse(is.na(character_maximum_length), numeric_precision, character_maximum_length)) %>% dplyr::select(-character_maximum_length, -numeric_precision)
   return(dfCol)
 }
 
@@ -195,9 +197,15 @@ formatted_date <- function(entry, t_format = c("dmy", "mdy", "ymd")) {
 
   char_date <- as.character(f(entry))
 
-  if (is.na(char_date))
-    stop("All date formats failed to parse. No formats found")
-
   return(char_date)
 
+}
+
+#-------------------------------------------------------------
+
+na_error <- function(x, err_msg) {
+  if (is.na(x)) {
+    stop(err_msg)
+  }
+  return(x)
 }
