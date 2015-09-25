@@ -1,5 +1,6 @@
 #' @export
-dbDatabaseClass <- R6::R6Class('dbDatabaseClass',
+dbDatabaseClass <- R6::R6Class('dbDatabaseClass',   ## TODO: make a mechanism so that only required tables are loaded and later on more tables can be added to dbClass
+
                                public = list(
                                  initialize = function(src, date_input = c("dmy", "mdy", "ymd"), method = c("extract_from_db", "create_from_scratch")) {
                                    date_input <- match.arg(date_input)
@@ -22,7 +23,6 @@ dbDatabaseClass <- R6::R6Class('dbDatabaseClass',
                                  },
 
                                  set_connection = function(src) {
-                                   stopifnot(inherits(src, "src_postgres"))
                                    private$connection <- src
                                    invisible(self)
                                  },
@@ -45,13 +45,10 @@ dbDatabaseClass <- R6::R6Class('dbDatabaseClass',
                                  },
 
                                  disconnect = function() {
-                                   if (inherits(self$connection, "src_sqlite")) {
-                                     RSQLite::dbDisconnect(self$connection$con)
-                                   } else if (inherits(self$connection, "src_postgres")) {
-                                     RPostgreSQL::dbDisconnect(self$connection$con)
-                                     private$connection <- NULL
-                                   }
+                                   DBI::dbDisconnect(self$connection$con)
+                                   private$connection <- NULL
                                  }),
+
                                private = list(
                                  name = NULL,             # name of database
                                  connection = NULL,       # src object from dplyr

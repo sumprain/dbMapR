@@ -46,34 +46,6 @@ sql_escape_ident.DBIConnection <- function(con, x) {
 
 sql_escape_ident.NULL <- sql_escape_ident.DBIConnection
 
-# LIST MANIPULATION FUNCTIONS START --------------------------------------------------
-
-remove_from_list = function(list) {
-  return(list[-1])
-}
-
-#------------------------------------------------------
-
-add_val_to_list = function(list, val, id, lim) {
-
-  if (length(list) >= lim) {
-    list <- remove_from_list(list)
-  }
-
-  list[[length(list) + 1]] <- val
-  names(list)[length(list)] <- id
-
-  return(list)
-}
-
-#----------------------------------------------------
-
-empty_list = function(list) {
-  list <- NULL
-  return(vector("list"))
-}
-
-# LIST MANIPULATION FUNCTIONS END -------------------
 #----------------------------------------------------
 
 cur_timestamp <- function(digits = 3L) {
@@ -91,117 +63,26 @@ uid <- function(digits = 16L) {
   return(paste0(sample(c(as.character(0:9), letters[1:6]),size = digits, replace = TRUE), collapse = ""))
 }
 
-#---------------------------------------------------
+#--------------------------------------------------
 
-getColumnInfo <- function(src, tbl_name) {
-  # src: src of dplyr
-  if (inherits(src, "src_postgres")) {
-    dfCol <- RPostgreSQL::dbGetQuery(src$con, paste0("SELECT column_name, is_nullable, udt_name, column_default, character_maximum_length, numeric_precision FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = ", dplyr::escape(tbl_name)))
-  }
-  dfCol <- dfCol %>% dplyr::mutate(var_size = ifelse(is.na(character_maximum_length), numeric_precision, character_maximum_length)) %>% dplyr::select(-character_maximum_length, -numeric_precision)
-  return(dfCol)
-}
+is_nothing_df <- function(df) {
 
-#----------------------------------------------------
-
-getKeyInfo <- function(src, key_name = c("PRIMARY KEY", "FOREIGN KEY"), tbl_name) {
-
-  key_name <- match.arg(key_name)
-
-  if (inherits(src, "src_postgres")) {
-
-    sSQL2 <- " AND tc.table_name = "
-
-    if (key_name == "PRIMARY KEY") {
-      sSQL1 <- "SELECT tc.table_name, kcu.column_name FROM information_schema.table_constraints AS tc JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name WHERE constraint_type = "
-    } else {
-      sSQL1 <- "SELECT tc.constraint_name, tc.table_name, kcu.column_name, ccu.table_name AS foreign_table_name, ccu.column_name AS foreign_column_name, rc.update_rule As update_rule, rc.delete_rule AS delete_rule FROM information_schema.table_constraints AS tc JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name JOIN information_schema.referential_constraints AS rc ON rc.constraint_name = tc.constraint_name WHERE constraint_type = "
-    }
-
-      df <- RPostgreSQL::dbGetQuery(src$con, paste0(sSQL1, dplyr::escape(key_name), sSQL2, dplyr::escape(tbl_name)))
-      d <- dim(df)
-      dd <- d[1]*d[2]
-      if (dd == 0) {
-        if (key_name == "PRIMARY KEY") {
-          df <- null_df_to_na(df, c("column_name", "isPK"))
-        } else {
-          df <- null_df_to_na(df, c("column_name", "foreign_table_name", "foreign_column_name", "update_rule", "delete_rule", "isFK"))
-        }
-
-      } else {
-        if (key_name == "PRIMARY KEY") {
-          df <- df %>% dplyr::select_("column_name") %>% unique %>% dplyr::mutate_(isPK = ~ rep(1, nrow(.)))
-
-        } else {
-          df <- df %>% dplyr::select_("column_name", "foreign_table_name", "foreign_column_name", "update_rule", "delete_rule") %>% unique %>% dplyr::mutate_(isFK = ~ rep(1, nrow(.)))
-        }
-      }
+  if (is.null(df)) {
+    return(TRUE)
   }
 
-  return(df)
-}
-
-# -------------------------------------------------
-
-match_text <- function(text, to_be_matched_against = c("char", "text", "int", "date", "float", "numeric", "real", "bool")) {
-  text <- tolower(text)
-  f <- function(text) {
-    function(matched_against) {
-      if (grepl(pattern = matched_against, text)) {
-        return(TRUE)
-      } else return(FALSE)
-    }
-  }
-
-  res <- sapply(to_be_matched_against, f(text))
-  return(names(res)[res])
-}
-
-# -------------------------------------------------
-
-change_data_type <- function(db_data_type) {
-  return(switch(db_data_type,
-    int = "integer",
-    float = ,
-    real = ,
-    numeric = "numeric",
-    text = ,
-    char = "character",
-    date = "date",
-    bool = "logical"
-  ))
-}
-
-# ------------------------------------------------
-
-null_df_to_na <- function(df, col_names) {
   d <- dim(df)
   dd <- d[1]*d[2]
+
   if (dd == 0) {
-    return(dplyr::as_data_frame(setNames(as.list(rep(NA_character_, length(col_names))), col_names)))
-  } else return(df)
-}
-
-# ----------------------------------------------
-
-formatted_date <- function(entry, t_format = c("dmy", "mdy", "ymd")) {
-
-  # problem is that if i enter "2015/02/30" as entry (wrong entry), ymd makes it to "2015-03-02".
-
-  t_format <- match.arg(t_format)
-  #entry <- gsub("[^[:alnum:]]", "/", entry)
-  f <- switch(t_format,
-                   dmy = lubridate::dmy,
-                   mdy = lubridate::mdy,
-                   ymd = lubridate::ymd)
-
-  char_date <- as.character(f(entry))
-
-  return(char_date)
+    return(TRUE)
+  } else {
+    return(FALSE)
+  }
 
 }
 
-#-------------------------------------------------------------
+#-------------------------------------------
 
 na_error <- function(x, err_msg) {
   if (is.na(x)) {

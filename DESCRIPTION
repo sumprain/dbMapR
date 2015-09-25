@@ -11,10 +11,11 @@ LazyData: TRUE
 Imports: dplyr,
     Rcpp,
     assertthat,
+    DBI,
     RSQLite,
     RPostgreSQL,
     R6,
-    lubridate
+    readr
 LinkingTo: Rcpp
 Suggests: testthat,
     knitr

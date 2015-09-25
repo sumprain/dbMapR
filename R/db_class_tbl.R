@@ -10,22 +10,23 @@ dbTableClass <- R6::R6Class('dbTableClass',
 
                                 method <- match.arg(method)
                                 private$method <- method
+                                private$src <- src
 
                                 if (private$method == "extract_from_db") {
-                                  df_col1 <- getColumnInfo(src, self$get_name())
-                                  df_col_pk <- getKeyInfo(src, "PRIMARY KEY", self$get_name())
-                                  df_col_fk <- getKeyInfo(src, "FOREIGN KEY", self$get_name())
+                                  df_col1 <- getColumnInfo(private$src, self$get_name())
+                                  df_col_pk <- getKeyInfo_pk(private$src, self$get_name())
+                                  df_col_fk <- getKeyInfo_fk(private$src, self$get_name())
 
                                   df_col <- df_col1 %>% left_join(df_col_pk, by = c("column_name" = "column_name")) %>% left_join(df_col_fk, by = c("column_name" = "column_name"))
                                   df_col[, c("isPK", "isFK")][is.na(df_col[, c("isPK", "isFK")])] <- 0
                                   df_col[is.na(df_col)] <- ""
-                                  self$set_dfPKColumn(getPK(src, self$get_name()))
+                                  self$set_PKColumn(df_col[df_col$isPK == 1, "column_name", drop = TRUE])
                                   self$set_nameColumns(df_col[, "column_name", drop = TRUE])
                                   self$set_dfForeignKey(df_col_fk)
                                   private$fill_with_cols(df_col, date_input, method)
 
                                 } else if (private$method == "create_from_scratch") {
-                                  # TODO: fill later on
+                                  ## TODO: fill later on
                                 }
                                 invisible(self)
 
@@ -36,8 +37,8 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                 invisible(self)
                               },
 
-                              set_dfPKColumn = function(dfPKColumn) {       # contains next PK value also. dataframe with column_name, data_type, next_val
-                                private$dfPKColumn <- dfPKColumn
+                              set_PKColumn = function(PKColumn) {       # contains next PK value
+                                private$PKColumn <- PKColumn
                                 invisible(self)
                               },
 
@@ -59,8 +60,8 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                 return(private$columns)
                               },
 
-                              get_dfPKColumn = function() {
-                                return(private$dfPKColumn)
+                              get_PKColumn = function() {
+                                return(private$PKColumn)
                               },
 
                               get_nameColumns = function() {
@@ -71,33 +72,39 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                 return(private$dfForeignKey)
                               },
 
-                              insertIntoDB = function() {},
+                              insertIntoDB = function() {
+                                insert_into_table(private$src, self)
+                                invisible(self)
+                              },
+
                               updateToDB = function() {},
                               deleteRow = function() {}
                             ), private = list(
 
                               name = NULL,               # database name of table
                               columns = list(),          # list containing the columns (dbColumnClass)
-                              dfPKColumn = NULL,       # name of PK column
+                              PKColumn = NULL,       # name of PK column
                               nameColumns = NULL,        # vector representing name of columns
                               dfForeignKey = NULL,       # dataframe containing the FK details with col names: col_name, foreign_tbl_name, foreign_col_name
                               method = NULL,
+                              src = NULL,
 
                               fill_with_cols = function(df_col, date_input, method) {
 
                                 for (i in 1:nrow(df_col)) {
                                   intdf <- df_col[i, ]
+
                                   intdf[["udt_name"]] <- change_data_type(match_text(intdf[["udt_name"]]))
                                   private$columns[[intdf[["column_name"]]]] <- dbColumnClass$new(name = intdf[["column_name"]],
                                           nameTable = self$get_name(),
                                           isPK = as.integer(intdf[["isPK"]]),
-                                          PKNextVal = private$dfPKColumn[["next_val"]],
                                           isFK = as.integer(intdf[["isFK"]]),
                                           refTable = intdf[["foreign_table_name"]],
                                           refCol = intdf[["foreign_column_name"]],
                                           update_rule = intdf[["update_rule"]],
                                           delete_rule = intdf[["delete_rule"]],
                                           typeData = intdf[["udt_name"]],
+                                          varSize = intdf[["var_size"]],
                                           isRequired = 1 * (intdf[["is_nullable"]] == "NO"),
                                           defaultVal = intdf[["column_default"]],
                                           date_input = date_input,

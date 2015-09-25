@@ -5,13 +5,13 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           initialize = function(name,
                                                 nameTable,
                                                 isPK = NULL,
-                                                PKNextVal = NULL,
                                                 isFK = NULL,
                                                 refTable = NULL,
                                                 refCol = NULL,
                                                 update_rule = NULL,
                                                 delete_rule = NULL,
                                                 typeData = NULL,
+                                                varSize = NULL,
                                                 isRequired = NULL,
                                                 defaultVal = NULL,
                                                 date_input = c("dmy", "mdy", "ymd"),
@@ -23,13 +23,13 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                             self$set_name(name)
                             self$set_nameTable(nameTable)
                             self$set_isPK(isPK)
-                            self$set_PKNextVal(PKNextVal)
                             self$set_isFK(isFK)
                             self$set_refTable(refTable)
                             self$set_refCol(refCol)
                             self$set_updateRule(update_rule)
                             self$set_deleteRule(delete_rule)
                             self$set_typeData(typeData)
+                            self$set_varSize(varSize)
                             self$set_isRequired(isRequired)
                             self$set_defaultVal(defaultVal)
                             self$set_cacheVal(cacheVal)
@@ -110,6 +110,11 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                             invisible(self)
                           },
 
+                        set_varSize = function(varSize) {
+                          private$varSize <- as.integer(varSize)
+                          invisible(self)
+                          },
+
                         set_isRequired = function(isRequired) {
                             stopifnot(is.logical(isRequired) | isRequired %in% c(0, 1))
                             private$isRequired <- 1*isRequired
@@ -124,7 +129,8 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                               if (is.null(private$typeData)) {
                                 private$defaultVal <- as.character(defaultVal)
                               } else if (private$method == "create_from_scratch") {
-                                defaultVal <- switch(private$typeData,
+                                if (!is.null(defaultVal)) {
+                                  defaultVal <- switch(private$typeData,
                                                      character = ,
                                                      date = formatted_date(defaultVal),
                                                      numeric = as.numeric(defaultVal),
@@ -132,9 +138,10 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                                                      logical = as.logical(defaultVal),
                                                      SERIAL = ,
                                                      TIMESTAMP = NULL)
-                                private$defaultVal <- defaultVal
+                                  private$defaultVal <- defaultVal
+                                }
+                                }
                               }
-                            }
                           invisible(self)
                           },
 
@@ -158,6 +165,7 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                                         logical = as.logical(val))
 
                           val <- na_error(val, paste0(private$nameTable, "-", private$name, ". Format is not ", private$typeData))
+
                           private$valToDB <- val
                           invisible(self)
                         },
@@ -217,6 +225,10 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                             return(private$typeData)
                         },
 
+                        get_varSize = function() {
+                          return(private$varSize)
+                        },
+
                         get_isRequired = function() {
                             return(private$isRequired)
                         },
@@ -248,6 +260,7 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           updateRule = NULL,
                           deleteRule = NULL,
                           typeData = NULL,     # Character vector representing the type of data which will be stored in the column (one of the previously set values only)
+                          varSize =  NULL,
                           isRequired = NULL,   # Whether the column can be kept empty
                           defaultVal = NULL,   # Default value of the column
                           valFromDB = list(),    # vector of values from database (result of some query)
