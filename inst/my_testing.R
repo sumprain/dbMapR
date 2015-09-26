@@ -15,6 +15,16 @@ RSQLite::dbSendQuery(src_sq$con, build_sql(sql("INSERT INTO "), escape("parent")
 
 RSQLite::dbGetQuery(src_sq$con, "SELECT * FROM parent")
 
+db1 <- dbDatabaseClass$new(src_sq, date_input = "ymd", method = "extract_from_db")
+
+# insert data
+
+cols <- db1$get_tables()$parent$get_columns()
+cols$name$add_valToDB("sss")
+cols$dob$add_valToDB("2015/10/10")
+
+db1$get_tables()$parent$insertIntoDB()
+
 foo <- function(x = c("a", "b")) {
   #browser()
   x <- match.arg(x,several.ok = TRUE)

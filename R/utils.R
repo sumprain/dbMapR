@@ -86,7 +86,7 @@ is_nothing_df <- function(df) {
 
 na_error <- function(x, err_msg) {
   if (is.na(x)) {
-    stop(err_msg)
+    stop(err_msg,call. = FALSE)
   }
   return(x)
 }

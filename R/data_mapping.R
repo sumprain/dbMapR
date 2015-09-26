@@ -31,7 +31,7 @@ change_data_type <- function(db_data_type) {
 
 # ----------------------------------------------
 
-formatted_date <- function(entry, t_format = c("dmy", "mdy", "ymd")) {
+formatted_date <- function(entry, t_format = c("dmy", "mdy", "ymd"), ...) {
 
   t_format <- match.arg(t_format)
 
@@ -40,8 +40,29 @@ formatted_date <- function(entry, t_format = c("dmy", "mdy", "ymd")) {
               mdy = "%m%.%d%.%Y",
               ymd = "%Y%.%m%.%d")
 
-  char_date <- as.character(readr::parse_date(entry, f))
+  char_date <- readr::parse_date(entry, f, ...)
 
   return(char_date)
+
+}
+
+#-----------------------------------------------
+
+parse_val <- function(val, type_data, date_format, ...) {
+
+  val <- switch(type_data,
+                date = formatted_date(val, date_format, ...),
+                numeric = readr::parse_double(val, ...),
+                integer = readr::parse_integer(val, ...),
+                character = readr::parse_character(val, ...),
+                logical = readr::parse_logical(val, ...))
+
+  format_error <- attr(val, "problems")
+  attr(val, "format_error") <- FALSE
+  if (!is.null(format_error)) {
+    attr(val, "problems") <- NULL
+    attr(val, "format_error") <- TRUE
+  }
+  return(val)
 
 }

@@ -61,13 +61,13 @@ prepare_cols_for_insertion <- function(src, table) {
     coli <- table$get_columns()[[i]]
 
     # check for PK
-    if (coli$isPK() == 1) {
+    if (coli$get_isPK() == 1) {
       vals[[i]] <- insert_pk_val(src, coli)
       next()
     }
 
     # check for FK
-    if (coli$isFK() == 1) {
+    if (coli$get_isFK() == 1) {
       check_fk_val(src, coli)
     }
 
@@ -79,8 +79,9 @@ prepare_cols_for_insertion <- function(src, table) {
 
   vals <- lapply(vals, function(x) {
     if (is.null(x) | (is.na(x))) {
-      x <- NULL
+      return(NULL)
     }
+    return(x)
   })
 
   return(vals)
@@ -94,13 +95,10 @@ insert_into_table <- function(src, table) {
 
   cols <- names(list_col_val)
 
-  s_insert <- dplyr::build_sql(dplyr::sql("INSERT INTO "), dplyr::escape(table$get_name()), dplyr::sql(" "), dplyr::escape(cols), dplyr::sql(" VALUES "), dplyr::escape(list_col_val))
+  s_insert <- dplyr::build_sql(dplyr::sql("INSERT INTO "), dplyr::escape(table$get_name()), dplyr::sql(" "), dplyr::escape(cols), dplyr::sql(" VALUES "), dplyr::escape(unname(list_col_val)))
 
-  if (inherits(src, "src_postgres")) {
-    RPostgreSQL::dbSendQuery(src$con, s_insert)
-  } else if (inherits(src, "src_postgres")) {
-    RSQLite::dbSendQuery(src$con, s_insert)
-  }
+  DBI::dbSendQuery(src$con, s_insert)
+
   ## TODO: capture any error from the INSERT action and pass it as value to be later on added to shinywidget validation.
   ## TODO: check if TRANSACTION can be added to INSERT above
 

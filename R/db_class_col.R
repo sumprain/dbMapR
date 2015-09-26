@@ -78,7 +78,7 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
 
                         set_updateRule = function(update_rule) {
 
-                          if (!is.null(update_rule) && (update_rule != "")) {
+                          if (!is.null(update_rule) && (!is.na(update_rule))) {
                             if (!(update_rule %in% c("CASCADE", "NO ACTION", "SET NULL"))) {
                               warning(paste0("update_rule should be one of the CASCADE, NO ACTION, SET NULL for ", self$get_nameTable(), ": ", self$get_name()))
                               private$updateRule <- NULL
@@ -92,7 +92,7 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
 
                       set_deleteRule = function(delete_rule) {
 
-                          if (!is.null(delete_rule) && (delete_rule != "")) {
+                          if (!is.null(delete_rule) && (!is.na(delete_rule))) {
                             if (!(delete_rule %in% c("CASCADE", "NO ACTION", "SET NULL"))) {
                               warning(paste0("update_rule should be one of the CASCADE, NO ACTION, SET NULL for ", self$get_nameTable(), ": ", self$get_name()))
                               private$deleteRule <- NULL
@@ -129,7 +129,7 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                               if (is.null(private$typeData)) {
                                 private$defaultVal <- as.character(defaultVal)
                               } else if (private$method == "create_from_scratch") {
-                                if (!is.null(defaultVal)) {
+                                if (!is.null(defaultVal) && !is.na(defaultVal)) {
                                   defaultVal <- switch(private$typeData,
                                                      character = ,
                                                      date = formatted_date(defaultVal),
@@ -152,21 +152,14 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
 
                         add_valToDB = function(val) {
 
-                          if (is.na(val)) {
-                            private$valToDB <- NA
-                            invisible(self)
+                          val1 <- parse_val(val, private$typeData, private$date_input)
+
+                          if (attr(val1, "format_error")) {
+                            stop(paste0(private$nameTable, "-", private$name, ". Format of ", val, " is not ", private$typeData), call. = FALSE)
                           }
 
-                          val <- switch(private$typeData,
-                                        date = formatted_date(val, private$date_input),
-                                        numeric = as.numeric(val),
-                                        integer = as.integer(val),
-                                        character = as.character(val),
-                                        logical = as.logical(val))
+                          private$valToDB <- val1
 
-                          val <- na_error(val, paste0(private$nameTable, "-", private$name, ". Format is not ", private$typeData))
-
-                          private$valToDB <- val
                           invisible(self)
                         },
 

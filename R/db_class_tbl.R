@@ -19,7 +19,7 @@ dbTableClass <- R6::R6Class('dbTableClass',
 
                                   df_col <- df_col1 %>% left_join(df_col_pk, by = c("column_name" = "column_name")) %>% left_join(df_col_fk, by = c("column_name" = "column_name"))
                                   df_col[, c("isPK", "isFK")][is.na(df_col[, c("isPK", "isFK")])] <- 0
-                                  df_col[is.na(df_col)] <- ""
+                                  #df_col[is.na(df_col)] <- ""
                                   self$set_PKColumn(df_col[df_col$isPK == 1, "column_name", drop = TRUE])
                                   self$set_nameColumns(df_col[, "column_name", drop = TRUE])
                                   self$set_dfForeignKey(df_col_fk)
