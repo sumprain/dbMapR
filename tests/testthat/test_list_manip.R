@@ -1,4 +1,4 @@
-context("List manipulation functions in utils.R")
+context("List manipulation functions")
 
 # make a list to be checked ------------------------
 

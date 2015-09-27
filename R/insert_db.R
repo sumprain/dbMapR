@@ -77,14 +77,7 @@ prepare_cols_for_insertion <- function(src, table) {
     vals[[i]] <- coli$get_valToDB()
   }
 
-  vals <- lapply(vals, function(x) {
-    if (is.null(x) | (is.na(x))) {
-      return(NULL)
-    }
-    return(x)
-  })
-
-  return(vals)
+  return(compact(vals))
 }
 
 ## make INSERT statement
@@ -103,4 +96,17 @@ insert_into_table <- function(src, table) {
   ## TODO: check if TRANSACTION can be added to INSERT above
 
   return(NULL)
+}
+
+#--------------------------------------------------------------------------
+
+revert_vals_to_null <- function(table) {
+
+  cols <- table$get_columns()
+
+  lapply(cols, function(x) {
+    x$revert_valToDB_null()
+  })
+
+  invisible(NULL)
 }

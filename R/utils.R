@@ -90,3 +90,10 @@ na_error <- function(x, err_msg) {
   }
   return(x)
 }
+
+#---------------------------------------------
+
+compact <- function(x) {
+  retx <- vapply(x, function(y) return(is.null(y)||is.na(y)), logical(1L))
+  return(x[!retx])
+}

@@ -45,8 +45,9 @@ dbDatabaseClass <- R6::R6Class('dbDatabaseClass',   ## TODO: make a mechanism so
                                  },
 
                                  disconnect = function() {
-                                   DBI::dbDisconnect(self$connection$con)
+                                   DBI::dbDisconnect(private$connection$con)
                                    private$connection <- NULL
+                                   return("Successfully disconnected")
                                  }),
 
                                private = list(

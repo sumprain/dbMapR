@@ -35,7 +35,7 @@ getColumnInfo <- function(src, tbl_name) {
 getColumnInfo.src_postgres <- function(src, tbl_name) {
 
   dfCol <- DBI::dbGetQuery(src$con, sql_col_info(src, tbl_name))
-
+  dfCol <- dfCol %>% dplyr::mutate_(is_required = ~(is_nullable == "NO")) %>% dplyr::select_(~(-is_nullable))
   return(getColumnInfoFinal(dfCol))
 }
 
@@ -47,7 +47,7 @@ getColumnInfo.src_sqlite <- function(src, tbl_name) {
 
   dfCol$character_maximum_length <- rep(NA, nrow(dfCol))
   dfCol$numeric_precision <- rep(NA, nrow(dfCol))
-  dfCol <- dfCol %>% dplyr::select_("name", "notnull", "type", "dflt_value", "character_maximum_length", "numeric_precision") %>% dplyr::rename_(column_name = ~name, is_nullable = ~notnull, udt_name = ~type, column_default = ~dflt_value) %>% dplyr::mutate_(is_nullable = ~(1*! is_nullable))
+  dfCol <- dfCol %>% dplyr::select_("name", "notnull", "type", "dflt_value", "character_maximum_length", "numeric_precision") %>% dplyr::rename_(column_name = ~name, is_required = ~notnull, udt_name = ~type, column_default = ~dflt_value) %>% dplyr::mutate_(is_required = ~(is_required == 1))
 
   return(getColumnInfoFinal(dfCol))
 }

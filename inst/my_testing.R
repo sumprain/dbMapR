@@ -1,6 +1,33 @@
 # making a sqlite database
 
-src_sq <- src_sqlite("test.sqlite3")
+src_sq <- dplyr::src_sqlite("test.sqlite3",create = TRUE)
+
+DBI::dbSendQuery(src_sq$con, "CREATE TABLE table1 (
+                 id integer PRIMARY KEY,
+                 colchar varchar NOT NULL,
+                 colint integer DEFAULT 1,
+                 colreal real,
+                 coldate date,
+                 colbool boolean NOT NULL,
+                 coltimestamp timestamp NOT NULL)
+                 ")
+
+DBI::dbSendQuery(src_sq$con, "CREATE TABLE table2 (
+                 id character PRIMARY KEY,
+                 fk integer REFERENCES table1 (id),
+                 colchar varchar,
+                 coltimestamp timestamp NOT NULL)
+                 ")
+
+DBI::dbSendQuery(src_sq$con, "CREATE TABLE table3 (
+                fk_2 character REFERENCES table2 (id),
+                colreal real DEFAULT 1.008,
+                coltimestamp timestamp NOT NULL
+                )")
+
+
+
+DBI::dbDisconnect(src_sq$con)
 
 dbfrontendR::createTable(src_sq, "parent", types = c(id = "integer", name = "character(100)", dob = "date"), typePK = "id", typeRequired = c("id", "name"))
 

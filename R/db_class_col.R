@@ -49,7 +49,7 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
 
                         set_isPK = function(isPK) {
                             stopifnot(is.logical(isPK) | isPK %in% c(0, 1))
-                            private$isPK <- 1*isPK
+                            private$isPK <- as.integer(1*isPK)
                             invisible(self)
                           },
 
@@ -62,7 +62,7 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
 
                         set_isFK = function(isFK) {
                             stopifnot(is.logical(isFK) | isFK %in% c(0, 1))
-                            private$isFK <- 1*isFK
+                            private$isFK <- as.integer(1*isFK)
                             invisible(self)
                           },
 
@@ -104,7 +104,7 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           invisible(self)
                         },
 
-                        set_typeData = function(typeData = c("character", "numeric", "integer", "date", "logical", "TIMESTAMP", "SERIAL")) {
+                        set_typeData = function(typeData = c("character", "numeric", "integer", "date", "logical", "timestamp")) {
                             stopifnot(length(typeData) == 1)
                             private$typeData <- match.arg(typeData)
                             invisible(self)
@@ -117,7 +117,7 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
 
                         set_isRequired = function(isRequired) {
                             stopifnot(is.logical(isRequired) | isRequired %in% c(0, 1))
-                            private$isRequired <- 1*isRequired
+                            private$isRequired <- as.integer(1*isRequired)
                             invisible(self)
                           },
 
@@ -168,8 +168,8 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           invisible(self)
                         },
 
-                        empty_valToDB = function() {
-                          private$valToDB <- empty_list(private$valToDB)
+                        revert_valToDB_null = function() {
+                          private$valToDB <- NULL
                           invisible(self)
                         },
 
@@ -245,9 +245,9 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                         private = list(
                           name = NULL,         # database name of column
                           nameTable = NULL,    # database name of table which contains the column
-                          isPK = NULL,         # Is the column primary key column (TRUE, FALSE)
+                          isPK = NULL,         # Is the column primary key column (1, 0)
                           PKNextVal = NULL,
-                          isFK = NULL,         # Is the colum foreign key column (TRUE, FALSE)
+                          isFK = NULL,         # Is the colum foreign key column (1, 0)
                           refTable = NULL,     # If FK, database name of the referenced table (we will assume that the referenced column is                                                   the PK of refTable)
                           refCol = NULL,       # name of the PK column of FK table
                           updateRule = NULL,

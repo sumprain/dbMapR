@@ -60,3 +60,13 @@ There will be three types of classes:
 - delete row
 - nextPK: Method which will get next PK value if the column is PK.
 
+## Creating new table with `%>%` way
+
+```
+src %>% create_table(name, ...) %>% cols(name = type, ...) %>% pk(name) %>% fk(name, ref_table, ref_col, update_rule, delete_rule) %>% fk(name, ref_table, ref_col, update_rule, delete_rule) %>% required(name, ...) %>% unique(name, ...)
+```
+
+The above statement will convert into a SQL statement which will be entered into `dbSendQuery` statement to get a new table.
+
+It is assumed that new tables will be created by humans and data will entered into a database by machine.
+

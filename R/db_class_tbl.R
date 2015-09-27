@@ -13,6 +13,7 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                 private$src <- src
 
                                 if (private$method == "extract_from_db") {
+
                                   df_col1 <- getColumnInfo(private$src, self$get_name())
                                   df_col_pk <- getKeyInfo_pk(private$src, self$get_name())
                                   df_col_fk <- getKeyInfo_fk(private$src, self$get_name())
@@ -37,7 +38,7 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                 invisible(self)
                               },
 
-                              set_PKColumn = function(PKColumn) {       # contains next PK value
+                              set_PKColumn = function(PKColumn) {
                                 private$PKColumn <- PKColumn
                                 invisible(self)
                               },
@@ -74,6 +75,7 @@ dbTableClass <- R6::R6Class('dbTableClass',
 
                               insertIntoDB = function() {
                                 insert_into_table(private$src, self)
+                                revert_vals_to_null(self)
                                 invisible(self)
                               },
 
@@ -83,7 +85,7 @@ dbTableClass <- R6::R6Class('dbTableClass',
 
                               name = NULL,               # database name of table
                               columns = list(),          # list containing the columns (dbColumnClass)
-                              PKColumn = NULL,       # name of PK column
+                              PKColumn = NULL,           # name of PK column
                               nameColumns = NULL,        # vector representing name of columns
                               dfForeignKey = NULL,       # dataframe containing the FK details with col names: col_name, foreign_tbl_name, foreign_col_name
                               method = NULL,
@@ -105,7 +107,7 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                           delete_rule = intdf[["delete_rule"]],
                                           typeData = intdf[["udt_name"]],
                                           varSize = intdf[["var_size"]],
-                                          isRequired = 1 * (intdf[["is_nullable"]] == "NO"),
+                                          isRequired = intdf[["is_required"]],
                                           defaultVal = intdf[["column_default"]],
                                           date_input = date_input,
                                           method = method)

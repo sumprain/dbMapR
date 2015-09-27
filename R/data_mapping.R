@@ -1,4 +1,4 @@
-match_text <- function(text, to_be_matched_against = c("char", "text", "int", "date", "float", "numeric", "real", "bool")) {
+match_text <- function(text, to_be_matched_against = c("char", "text", "int", "date", "float", "numeric", "real", "bool", "timestamp")) {
   text <- tolower(text)
   f <- function(text) {
     function(matched_against) {
@@ -21,6 +21,7 @@ change_data_type <- function(db_data_type) {
                 float = ,
                 real = ,
                 numeric = "numeric",
+                timestamp = ,
                 character = ,
                 text = ,
                 char = "character",
@@ -55,7 +56,7 @@ parse_val <- function(val, type_data, date_format, ...) {
                 numeric = readr::parse_double(val, ...),
                 integer = readr::parse_integer(val, ...),
                 character = readr::parse_character(val, ...),
-                logical = readr::parse_logical(val, ...))
+                logical = readr::parse_integer(1*readr::parse_logical(val, ...)))
 
   format_error <- attr(val, "problems")
   attr(val, "format_error") <- FALSE
