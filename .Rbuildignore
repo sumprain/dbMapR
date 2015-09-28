@@ -1,4 +1,6 @@
-^.*\.Rproj$
+^.*\\.Rproj$
+^\\.Rproj\\.user$
+^devtools\\.R$
+^my\\_testing\\.R$
+^\\.Rhistory$
 ^\.Rproj\.user$
-^devtools\.R$
-^my\_testing\.R$

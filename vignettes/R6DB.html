@@ -10,7 +10,7 @@
 
 <meta name="author" content="Dr Suman Kumar" />
 
-<meta name="date" content="2015-09-10" />
+<meta name="date" content="2015-09-28" />
 
 <title>R6 classes denoting database structure</title>
 
@@ -28,7 +28,7 @@
 <div id="header">
 <h1 class="title">R6 classes denoting database structure</h1>
 <h4 class="author"><em>Dr Suman Kumar</em></h4>
-<h4 class="date"><em>2015-09-10</em></h4>
+<h4 class="date"><em>2015-09-28</em></h4>
 </div>
 
 
@@ -95,6 +95,22 @@
 <li>nextPK: Method which will get next PK value if the column is PK.</li>
 </ul>
 </div>
+</div>
+<div id="creating-new-table-with-way" class="section level2">
+<h2>Creating new table with <code>%&gt;%</code> way</h2>
+<pre><code>table(name, ...) %&gt;% cols(name = type, ...) %&gt;% pk(name) %&gt;% fk(name, ref_table, ref_col, update_rule, delete_rule) %&gt;% fk(name, ref_table, ref_col, update_rule, delete_rule) %&gt;% required(name, ...) %&gt;% unique(name, ...) %&gt;% defaultVal(col1 = val1, ...) %&gt;% create_table(src)</code></pre>
+<p>The above statement will convert into a SQL statement which will be entered into <code>dbSendQuery</code> statement to get a new table.</p>
+<p>It is assumed that new tables will be created by humans and data will entered into a database by machine.</p>
+<p><code>table</code> will create a new table object and <code>cols</code> will populate it with column objects. Rest of the functions can appear in any fashion and will populate the column objects.</p>
+<p><code>create_table</code> will assimilate all the inputs and run <code>dbSendQuery</code> and create a new table.</p>
+</div>
+<div id="validation-of-inputs" class="section level2">
+<h2>Validation of inputs</h2>
+<p>Validation needs to be done at column class level. Column class will have a <code>validation_rule</code> field which will store ae experession in form of <code>. &gt; 10</code>, <code>.</code> meaning the value. The validation will be set by the user after the column class is made out of the database by <code>dbDatabaseClass$new(&quot;extract_from_db&quot;)</code>.</p>
+</div>
+<div id="what-to-do-after-successful-insertion-into-database" class="section level2">
+<h2>What to do after successful insertion into database?</h2>
+<p>It will stored with cache value with pkid and timestamp as attribute and identifier. Old data will be automatically removed in FIFO format, length will be determined by <code>cacheVal</code>.</p>
 </div>
 
 

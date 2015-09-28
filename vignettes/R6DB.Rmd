@@ -63,10 +63,21 @@ There will be three types of classes:
 ## Creating new table with `%>%` way
 
 ```
-src %>% create_table(name, ...) %>% cols(name = type, ...) %>% pk(name) %>% fk(name, ref_table, ref_col, update_rule, delete_rule) %>% fk(name, ref_table, ref_col, update_rule, delete_rule) %>% required(name, ...) %>% unique(name, ...)
+table(name, ...) %>% cols(name = type, ...) %>% pk(name) %>% fk(name, ref_table, ref_col, update_rule, delete_rule) %>% fk(name, ref_table, ref_col, update_rule, delete_rule) %>% required(name, ...) %>% unique(name, ...) %>% defaultVal(col1 = val1, ...) %>% create_table(src)
 ```
 
 The above statement will convert into a SQL statement which will be entered into `dbSendQuery` statement to get a new table.
 
 It is assumed that new tables will be created by humans and data will entered into a database by machine.
 
+`table` will create a new table object and `cols` will populate it with column objects. Rest of the functions can appear in any fashion and will populate the column objects.
+
+`create_table` will assimilate all the inputs and run `dbSendQuery` and create a new table.
+
+## Validation of inputs
+
+Validation needs to be done at column class level. Column class will have a `validation_rule` field which will store ae experession in form of `. > 10`, `.` meaning the value. The validation will be set by the user after the column class is made out of the database by `dbDatabaseClass$new("extract_from_db")`.
+
+## What to do after successful insertion into database?
+
+It will stored with cache value with pkid and timestamp as attribute and identifier. Old data will be automatically removed in FIFO format, length will be determined by `cacheVal`.

@@ -1,5 +1,6 @@
 #' @useDynLib dbfrontendR
 #' @importFrom Rcpp sourceCpp
+#' @importFrom magrittr "%>%"
 NULL
 
 # functions used for createTable, taken verbatim from dplyr-----------------

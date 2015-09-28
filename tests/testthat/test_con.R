@@ -63,6 +63,7 @@ tb2 <- db1$get_tables()$table2
 test_that("table2 contains foreign key", {
   expect_equal(tb2$get_name(), "table2")
   expect_equal(tb2$get_PKColumn(), "id")
+  expect_is(tb2$get_dfForeignKey(), "data.frame")
   expect_equal(tb2$get_dfForeignKey()$column_name, "fk")
 })
 

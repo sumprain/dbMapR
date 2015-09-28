@@ -1,6 +1,6 @@
 Package: dbfrontendR
 Type: Package
-Title: Miscellaneous functions for accessing Database and creating front end.
+Title: Miscellaneous functions for accessing Database and creating front end
 Version: 0.0.0.0.9000
 Date: 2015-07-01
 Author: Suman Kumar <sumprain@yahoo.com>
@@ -15,7 +15,8 @@ Imports: dplyr,
     RSQLite,
     RPostgreSQL,
     R6,
-    readr
+    readr,
+    magrittr
 LinkingTo: Rcpp
 Suggests: testthat,
     knitr

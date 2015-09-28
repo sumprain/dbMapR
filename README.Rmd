@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This package intends to connect DB to R to Shiny Application (Database front end). In process of development.
+This package intends to connect DB to R to Shiny Application (Database front end). In process of development (Still in infancy stage).
 
 ## Shiny connection
 

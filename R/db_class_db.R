@@ -13,8 +13,6 @@ dbDatabaseClass <- R6::R6Class('dbDatabaseClass',   ## TODO: make a mechanism so
                                      self$set_nameTables(dplyr::db_list_tables(src$con))
                                      private$populateTables(private$connection, private$nameTables, date_input, private$method)
                                    }
-
-                                   reg.finalizer(self, function(self) self$disconnect(), onexit = TRUE)
                                  },
 
                                  set_name = function(name) {

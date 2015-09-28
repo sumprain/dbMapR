@@ -42,6 +42,59 @@ test_that("data parsed correctly before inserting into db", {
   expect_equivalent(parse_val(FALSE, "logical"), 0L)
 })
 
+col1 <- dbColumnClass$new(name = "col1",
+                         nameTable = "table1",
+                         isPK = 0,
+                         isFK = 0,
+                         isRequired = 1,
+                         defaultVal = 1,
+                         typeData = "integer",
+                         method = "extract_from_db")
+
+col2 <- dbColumnClass$new(name = "col2",
+                          nameTable = "table1",
+                          isPK = 0,
+                          isFK = 0,
+                          isRequired = 1,
+                          typeData = "integer",
+                          method = "extract_from_db")
+
+col3 <- dbColumnClass$new(name = "col3",
+                          nameTable = "table1",
+                          isPK = 0,
+                          isFK = 0,
+                          isRequired = 0,
+                          typeData = "integer",
+                          method = "extract_from_db")
+
+col4 <- dbColumnClass$new(name = "col4",
+                          nameTable = "table1",
+                          isPK = 0,
+                          isFK = 0,
+                          isRequired = 1,
+                          typeData = "integer",
+                          method = "extract_from_db")
+
+col4$add_valToDB(56L)
+
+col5 <- dbColumnClass$new(name = "col5",
+                          nameTable = "table1",
+                          isPK = 0,
+                          isFK = 1,
+                          isRequired = 0,
+                          typeData = "integer",
+                          method = "extract_from_db")
+
+test_that("required constraint is valid", {
+  expect_true(is_nothing_allowed(col1))
+  expect_false(is_nothing_allowed(col2))
+  expect_true(is_nothing_allowed(col3))
+  expect_true(is_nothing_allowed(col4))
+  expect_false(is_nothing_allowed(col5))
+})
+
+rm(col1, col2, col3, col4, col5)
+
 # insert into database -------
 
 src_sq <- dplyr::src_sqlite(path = tempfile(), create = TRUE)
@@ -69,6 +122,7 @@ DBI::dbSendQuery(src_sq$con, "CREATE TABLE table3 (
                  coltimestamp char NOT NULL
 )")
 
+
 DBI::dbClearResult(src_sq$con)
 
 db1 <- dbDatabaseClass$new(src_sq, method = "extract_from_db", date_input = "ymd")
@@ -86,8 +140,28 @@ cols$coltimestamp$add_valToDB(cur_timestamp())
 tb1$insertIntoDB()
 
 cols$colchar$add_valToDB("mom")
-
 cols$colreal$add_valToDB(1.89)
 cols$coldate$add_valToDB("2015/09/09")
 cols$colbool$add_valToDB(TRUE)
 cols$coltimestamp$add_valToDB(cur_timestamp())
+
+tb1$insertIntoDB()
+
+tb2 <- db1$get_tables()$table2
+cols2 <- tb2$get_columns()
+
+cols2$fk$add_valToDB(2)
+cols2$colchar$add_valToDB("adhrit")
+cols2$coltimestamp$add_valToDB(cur_timestamp())
+
+tb2$insertIntoDB()
+
+cols2$fk$add_valToDB(2)
+cols2$colchar$add_valToDB("aarotrika")
+cols2$coltimestamp$add_valToDB(cur_timestamp())
+tb2$insertIntoDB()
+cols2$fk$add_valToDB(2)
+cols2$coltimestamp$add_valToDB(cur_timestamp())
+tb2$insertIntoDB()
+
+db1$disconnect()

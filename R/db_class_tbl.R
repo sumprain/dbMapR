@@ -18,7 +18,7 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                   df_col_pk <- getKeyInfo_pk(private$src, self$get_name())
                                   df_col_fk <- getKeyInfo_fk(private$src, self$get_name())
 
-                                  df_col <- df_col1 %>% left_join(df_col_pk, by = c("column_name" = "column_name")) %>% left_join(df_col_fk, by = c("column_name" = "column_name"))
+                                  df_col <- df_col1 %>% dplyr::left_join(df_col_pk, by = c("column_name" = "column_name")) %>% dplyr::left_join(df_col_fk, by = c("column_name" = "column_name"))
                                   df_col[, c("isPK", "isFK")][is.na(df_col[, c("isPK", "isFK")])] <- 0
                                   #df_col[is.na(df_col)] <- ""
                                   self$set_PKColumn(df_col[df_col$isPK == 1, "column_name", drop = TRUE])
@@ -74,9 +74,15 @@ dbTableClass <- R6::R6Class('dbTableClass',
                               },
 
                               insertIntoDB = function() {
+
+                                if (length(private$PKColumn) == 0L) {
+                                  warning(paste0("Table: ", private$name, " does not have PK. Every table should have a PK."))
+                                }
+
                                 insert_into_table(private$src, self)
                                 revert_vals_to_null(self)
                                 invisible(self)
+
                               },
 
                               updateToDB = function() {},
