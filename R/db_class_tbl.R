@@ -73,13 +73,13 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                 return(private$dfForeignKey)
                               },
 
-                              insertIntoDB = function() {
+                              insertIntoDB = function(name_token_col = NULL) {
 
                                 if (length(private$PKColumn) == 0L) {
                                   warning(paste0("Table: ", private$name, " does not have PK. Every table should have a PK."))
                                 }
 
-                                insert_into_table(private$src, self)
+                                insert_into_table(private$src, self, name_token_col)
                                 revert_vals_to_null(self)
                                 invisible(self)
 

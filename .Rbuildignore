@@ -1,6 +1,6 @@
-^.*\\.Rproj$
-^\\.Rproj\\.user$
-^devtools\\.R$
-^my\\_testing\\.R$
-^\\.Rhistory$
+^.*\.Rproj$
 ^\.Rproj\.user$
+^devtools\.R$
+^inst/my_testing\.R$
+^inst/devtools\.R$
+^my_testing\.R$

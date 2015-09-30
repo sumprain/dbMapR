@@ -60,7 +60,7 @@ is_nothing_allowed <- function(col) {
 
 }
 
-prepare_cols_for_insertion <- function(src, table) {
+prepare_cols_for_insertion <- function(src, table, name_token_col = NULL) {
 
   cols <- table$get_nameColumns()
   vals <- setNames(vector("list", length(cols)), cols)
@@ -79,6 +79,11 @@ prepare_cols_for_insertion <- function(src, table) {
       check_fk_val(src, coli)
     }
 
+    # will automatically fill up the timestamp column (token column)
+    if (!is.null(name_token_col) && (coli$get_name() == name_token_col)) {
+      coli$add_valToDB(cur_timestamp())
+    }
+
     # check for NULL field
     if (!is_nothing_allowed(coli)) {
       stop(paste0("No value is available for ", coli$get_name(), " of ", coli$get_nameTable()))
@@ -92,9 +97,9 @@ prepare_cols_for_insertion <- function(src, table) {
 
 ## make INSERT statement
 
-insert_into_table <- function(src, table) {
+insert_into_table <- function(src, table, name_token_col = NULL) {
 
-  list_col_val <- prepare_cols_for_insertion(src, table)
+  list_col_val <- prepare_cols_for_insertion(src, table, name_token_col)
 
   cols <- names(list_col_val)
 

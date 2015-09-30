@@ -67,3 +67,19 @@ parse_val <- function(val, type_data, date_format, ...) {
   return(val)
 
 }
+
+# validate valToDB to user defined validation rules -----------------------------
+
+validate <- function(val, condition) {
+# condition is quoted expressions produced from lazydots
+# val is the value which needs to be validated
+
+  validate_result <- vapply(condition, function(x) {
+    res <- lazyeval::lazy_eval(x, data = list(`..` = val))
+    res
+  }, logical(1L))
+
+  err_msg <- paste0("<VALIDATION FAILURE FOR RULE(S)> ", paste0(vapply(condition[!validate_result], function(x) deparse(lazyeval::interp(x[["expr"]], .values = list(`..` = val))), character(1L)), collapse = "; "))
+
+  return(list(result = all(validate_result), err_msg = err_msg))
+}

@@ -372,4 +372,53 @@ check_for_nothing <- function(col) {
 
 ## formatting with data type already checked at the time of data entry into add_ValToDB
 
+## validation mechanism
 
+a <- R6::R6Class("a", public = list(
+
+  initialize = function(name) {
+    private$name <- name
+    invisible(self)
+  },
+
+  add_val = function(val) {
+    # add validation statement
+    #browser()
+    val_res <- validate(val, private$val_statement)
+    if (val_res$result) {
+      private$val <- val
+    } else {
+      stop(val_res$err_msg, call. = FALSE)
+    }
+    invisible(self)
+  },
+
+  validation_statement = function(...) {
+    private$val_statement <- lazyeval::lazy_dots(...)
+  },
+
+  get_val = function() {
+    return(private$val)
+  }),
+
+  private = list(
+    name = NULL,
+    val = NULL,
+    val_statement = NULL))
+
+validate <- function(val, condition) {
+
+  validate_result <- vapply(condition, function(x) {
+    res <- lazyeval::lazy_eval(x, data = list(`..` = val))
+    res
+  }, logical(1L))
+
+  err_msg <- paste0("<VALIDATION FAILURE FOR RULE(S)> ", paste0(vapply(condition[!validate_result], function(x) deparse(lazyeval::interp(x[["expr"]], .values = list(`..` = val))), character(1L)), collapse = "; "))
+
+  return(list(result = all(validate_result), err_msg = err_msg))
+}
+
+b <- 10
+cl_a <- a$new("suman")
+cl_a$validation_statement(is.character(..))
+cl_a$add_val("suman")

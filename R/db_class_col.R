@@ -145,6 +145,12 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           invisible(self)
                           },
 
+                        set_validationStatements = function(...) {
+
+                          private$validation_statements <- lazyeval::lazy_dots(...)
+
+                        },
+
                         add_valFromDB = function(val) {
                           private$valFromDB <- add_val_to_list(private$valFromDB, val, id, private$cacheVal)
                           invisible(self)
@@ -156,6 +162,13 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
 
                           if (attr(val1, "format_error")) {
                             stop(paste0(private$nameTable, "-", private$name, ". Format of ", val, " is not ", private$typeData), call. = FALSE)
+                          }
+
+                          if (!is.null(private$validation_statements)) {
+                            validate_res <- validate(val1, private$validation_statements)
+                            if (!validate_res$result) {
+                              stop(validate_res$err_msg, call. = FALSE)
+                            }
                           }
 
                           private$valToDB <- val1
@@ -256,6 +269,7 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           varSize =  NULL,
                           isRequired = NULL,   # Whether the column can be kept empty
                           defaultVal = NULL,   # Default value of the column
+                          validation_statements = NULL,
                           valFromDB = list(),    # vector of values from database (result of some query)
                           valToDB = NULL,      # vector of values from front (to be inserted into database)
                           cacheVal = NULL,      # integer denoting number of list of values to be stored

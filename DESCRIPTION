@@ -16,7 +16,8 @@ Imports: dplyr,
     RPostgreSQL,
     R6,
     readr,
-    magrittr
+    magrittr,
+    lazyeval
 LinkingTo: Rcpp
 Suggests: testthat,
     knitr
