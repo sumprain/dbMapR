@@ -17,7 +17,8 @@ Imports: dplyr,
     R6,
     readr,
     magrittr,
-    lazyeval
+    lazyeval,
+    lubridate
 LinkingTo: Rcpp
 Suggests: testthat,
     knitr

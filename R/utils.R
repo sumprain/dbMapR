@@ -49,17 +49,6 @@ sql_escape_ident.NULL <- sql_escape_ident.DBIConnection
 
 #----------------------------------------------------
 
-cur_timestamp <- function(digits = 3L) {
-
-  options(digits.secs = digits)
-  res <- format(Sys.time(), "%Y%m%d%H%M%OS")
-  options(digits.secs = NULL)
-  return(res)
-
-}
-
-#---------------------------------------------------
-
 uid <- function(digits = 16L) {
   return(paste0(sample(c(as.character(0:9), letters[1:6]),size = digits, replace = TRUE), collapse = ""))
 }
