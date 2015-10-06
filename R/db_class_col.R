@@ -34,6 +34,9 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                             self$set_defaultVal(defaultVal)
                             self$set_cacheVal(cacheVal)
 
+                            private$queue_valToDB <- queue(max_length = cacheVal)
+                            private$queue_valToBeUpdated <- queue(max_length = cacheVal)
+
                             invisible(self)
                           },
 
@@ -253,7 +256,12 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
 
                         get_valToDB = function() {
                           return(private$valToDB)
-                        }),
+                        },
+
+                        get_queue_valToDB = function() {
+                          return(private$queue_valToDB)
+                        }
+                      ),
 
                         private = list(
                           name = NULL,         # database name of column
@@ -270,9 +278,11 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           isRequired = NULL,   # Whether the column can be kept empty
                           defaultVal = NULL,   # Default value of the column
                           validation_statements = NULL,
+                          cacheVal = NULL,      # integer denoting number of list of values to be stored
                           valFromDB = list(),    # vector of values from database (result of some query)
                           valToDB = NULL,      # vector of values from front (to be inserted into database)
-                          cacheVal = NULL,      # integer denoting number of list of values to be stored
+                          queue_valToDB = NULL,
+                          queue_valToBeUpdated = NULL,
                           date_input = NULL,
                           method = NULL
                     ))

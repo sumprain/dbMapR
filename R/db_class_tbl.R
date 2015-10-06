@@ -76,10 +76,11 @@ dbTableClass <- R6::R6Class('dbTableClass',
                               insertIntoDB = function(name_token_col = NULL) {
 
                                 if (length(private$PKColumn) == 0L) {
-                                  warning(paste0("Table: ", private$name, " does not have PK. Every table should have a PK."))
+                                  stop(paste0("Table: ", private$name, " does not have PK. Every table should have a PK."), call. = FALSE)
                                 }
 
                                 insert_into_table(private$src, self, name_token_col)
+                                insert_into_queue_valToDB(self, name_token_col)
                                 revert_vals_to_null(self)
                                 invisible(self)
 

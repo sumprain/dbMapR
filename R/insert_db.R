@@ -116,6 +116,26 @@ insert_into_table <- function(src, table, name_token_col = NULL) {
 
 #--------------------------------------------------------------------------
 
+insert_into_queue_valToDB <- function(table, token_col_name) {
+
+  cols <- table$get_columns()
+  pk_id <- cols[[table$get_PKColumn()]]$get_PKNextVal()
+
+  lapply(cols, function(x) {
+    l_str <- setNames(vector("list", 3), c("val_to_db", "pk_id", "time_stamp"))
+    if (!((x$get_isPK() == 1) || (x$get_name() == token_col_name))) {
+      l_str[["val_to_db"]] <- x$get_valToDB()
+      l_str[["pk_id"]] <- pk_id
+      l_str[["time_stamp"]] <- cols[[token_col_name]]$get_valToDB()
+      push(x$get_queue_valToDB(), l_str)
+      l_str <- NULL
+    }
+  })
+  invisible(NULL)
+
+}
+#--------------------------------------------------------------------------
+
 revert_vals_to_null <- function(table) {
 
   cols <- table$get_columns()

@@ -10,7 +10,7 @@
 
 <meta name="author" content="Dr Suman Kumar" />
 
-<meta name="date" content="2015-09-28" />
+<meta name="date" content="2015-10-06" />
 
 <title>R6 classes denoting database structure</title>
 
@@ -28,7 +28,7 @@
 <div id="header">
 <h1 class="title">R6 classes denoting database structure</h1>
 <h4 class="author"><em>Dr Suman Kumar</em></h4>
-<h4 class="date"><em>2015-09-28</em></h4>
+<h4 class="date"><em>2015-10-06</em></h4>
 </div>
 
 
@@ -111,6 +111,16 @@
 <div id="what-to-do-after-successful-insertion-into-database" class="section level2">
 <h2>What to do after successful insertion into database?</h2>
 <p>It will stored with cache value with pkid and timestamp as attribute and identifier. Old data will be automatically removed in FIFO format, length will be determined by <code>cacheVal</code>.</p>
+</div>
+<div id="updating-values-in-database" class="section level2">
+<h2>Updating values in database</h2>
+<p>Updating the values of variables in database is going to be complicated affair. It involves the following components:</p>
+<ol style="list-style-type: decimal">
+<li><p>Retreiving values from database table as a row of columns given <code>pk_id</code> value. it will be contain one row.</p></li>
+<li><p>Sending the values to the corresponding <code>dbColumnClass</code> field <code>update_container</code>. The field will point to an environment with parent environment <code>emptyenv</code>. It will have four fields: <code>orig_val</code>, <code>modified_val</code>, <code>pk_id</code>, <code>time_stamp</code>. Environment will be <code>locked</code> and <code>pk_id</code>, <code>time_stamp</code> will also be locked for any modification. <code>modified_val</code> will be checked for accuracy (as for <code>valToDB</code>) before accepting the value.</p></li>
+<li><p>It will select all the columns which are modified and make UPDATE SQL command. Before executing UPDATE command, it will extract the <code>time_stamp</code> value and check it with earlier <code>time_stamp</code> value. UPDATE command will be run only when both the time stamps are same. <code>time_stamp</code> will be updated automatically as for INSERT command.</p></li>
+<li><p>After successful UPDATE, the values will be stored as list in FIFO fashion as for INSERT function.</p></li>
+</ol>
 </div>
 
 

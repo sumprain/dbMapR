@@ -222,8 +222,6 @@ f_scen2 <- function() {
   return(DBI::dbGetQuery(src_sq$con, "select * from table1")[, -7])
 }
 
-
-
 # scenario3: col is null, required false, default val present: expect_no_error, col val is default val
 
 f_scen3 <- function() {
@@ -288,14 +286,30 @@ f_scen_fk_correct <- function() {
   return(DBI::dbGetQuery(src_sq$con, "select * from table2")[, -c(1, 4)])
 }
 
+tb3 <- db1$get_tables()$table3
+cols3 <- tb3$get_columns()
+
+f_scen_nopk <- function() {
+
+  cols3$fk_2$add_valToDB(1)
+  cols3$colreal$add_valToDB(2.36)
+  tb3$insertIntoDB(name_token_col = "coltimestamp")
+
+}
+
 test_that("Database insert is appropriately done", {
   expect_error(f_scen1())
   expect_equal(f_scen2(), data.frame(id = 1, colchar = "suman", colint = 100, colreal = 1.89, coldate = "2015-09-09", colbool = 1, stringsAsFactors = FALSE))
+  expect_equivalent(cols$colchar$get_queue_valToDB()$`1`$val_to_db, "suman")
+  expect_equivalent(cols$colchar$get_queue_valToDB()$`1`$pk_id, 1)
   expect_equal(f_scen3(), data.frame(id = c(1, 2), colchar = c("suman", "suman"), colint = c(100, 100), colreal = c(1.89, 20.01), coldate = c("2015-09-09", "2015-09-09"), colbool = c(1, 1), stringsAsFactors = FALSE))
+  expect_equivalent(cols$colchar$get_queue_valToDB()$`2`$val_to_db, "suman")
+  expect_equivalent(cols$colchar$get_queue_valToDB()$`2`$pk_id, 2)
   expect_equal(f_scen4(), data.frame(id = c(1, 2, 3), colchar = c("suman", "suman", "suman"), colint = c(100, 100, 12), colreal = c(1.89, 20.01, 10.09), coldate = c("2015-09-09", "2015-09-09", NA), colbool = c(1, 1, 1), stringsAsFactors = FALSE))
   expect_error(f_scen_fk_null())
   expect_error(f_scen_fk_not_in_pk())
   expect_equal(f_scen_fk_correct(), data.frame(fk = 2, colchar = "adhrit", stringsAsFactors = FALSE))
+  expect_error(f_scen_nopk(), "Table: table3 does not have PK.")
 })
 
 

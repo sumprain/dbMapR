@@ -81,3 +81,17 @@ Validation needs to be done at column class level. Column class will have a `val
 ## What to do after successful insertion into database?
 
 It will stored with cache value with pkid and timestamp as attribute and identifier. Old data will be automatically removed in FIFO format, length will be determined by `cacheVal`.
+
+## Updating values in database
+
+Updating the values of variables in database is going to be complicated affair. It involves the following components:
+
+1. Retreiving values from database table as a row of columns given `pk_id` value. it will be contain one row.
+
+2. Sending the values to the corresponding `dbColumnClass` field `update_container`. The field will point to an environment with parent environment `emptyenv`. It will have four fields: `orig_val`, `modified_val`, `pk_id`, `time_stamp`. Environment will be `locked` and `pk_id`, `time_stamp` will also be locked for any modification. `modified_val` will be checked for accuracy (as for `valToDB`) before accepting the value.
+
+3. It will select all the columns which are modified and make UPDATE SQL command. Before executing UPDATE command, it will extract the `time_stamp` value and check it with earlier `time_stamp` value. UPDATE command will be run only when both the time stamps are same. `time_stamp` will be updated automatically as for INSERT command.
+
+4. After successful UPDATE, the values will be stored as list in FIFO fashion as for INSERT function.
+
+
