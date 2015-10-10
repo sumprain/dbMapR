@@ -86,7 +86,14 @@ dbTableClass <- R6::R6Class('dbTableClass',
 
                               },
 
-                              updateToDB = function() {},
+                              retrieveRowForUpdate = function(pk_id) {
+
+                              },
+
+                              updateToDB = function() {
+
+                              },
+
                               deleteRow = function() {}
                             ), private = list(
 

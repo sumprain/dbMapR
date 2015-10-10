@@ -21,19 +21,12 @@ insert_pk_val <- function(src, col) {
 
 check_fk_val <- function(src, col) {
 
-  refTable <- col$get_refTable()
-  refCol <- col$get_refCol()
+  val <- col$get_valToDB()
+  chk_fk <- check_fk_val_generic(src, col, val)
 
-  if (is.null(col$get_valToDB()) || is.na(col$get_valToDB())) {
-    stop("FK cannot be nothing")
-  }
-  #browser()
-  poss_vals <- dplyr::collect(dplyr::tbl(src, refTable) %>% dplyr::select_(.dots = refCol))
-
-  if (!(col$get_valToDB() %in% poss_vals[[refCol]])) {
-    invalid_val <- col$get_valToDB()
+  if (!chk_fk$chk_status) {
     col$revert_valToDB_null()
-    stop(paste0("Value of ", invalid_val, " to be added to ", col$get_name(), " is not contained in PK: ", refTable, "-", refCol))
+    stop(chk_fk$err_msg, call. = FALSE)
   }
 
   invisible(NULL)
@@ -116,7 +109,7 @@ insert_into_table <- function(src, table, name_token_col = NULL) {
 
 #--------------------------------------------------------------------------
 
-insert_into_queue_valToDB <- function(table, token_col_name) {
+insert_into_queue_valToDB <- function(table, token_col_name = NULL) {
 
   cols <- table$get_columns()
   pk_id <- cols[[table$get_PKColumn()]]$get_PKNextVal()
@@ -126,7 +119,7 @@ insert_into_queue_valToDB <- function(table, token_col_name) {
     if (!((x$get_isPK() == 1) || (x$get_name() == token_col_name))) {
       l_str[["val_to_db"]] <- x$get_valToDB()
       l_str[["pk_id"]] <- pk_id
-      l_str[["time_stamp"]] <- cols[[token_col_name]]$get_valToDB()
+      l_str[["time_stamp"]] <- ifelse(!is.null(token_col_name), cols[[token_col_name]]$get_valToDB(), NULL)
       push(x$get_queue_valToDB(), l_str)
       l_str <- NULL
     }

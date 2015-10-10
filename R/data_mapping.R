@@ -83,3 +83,24 @@ validate <- function(val, condition) {
 
   return(list(result = all(validate_result), err_msg = err_msg))
 }
+
+# check input for correctness (for add_valToDB and update) --------------------------------
+
+corrected_input <- function(col, val) {
+
+  val1 <- parse_val(val, col$get_typeData(), col$get_date_input())
+
+  if (attr(val1, "format_error")) {
+    stop(paste0(col$get_nameTable(), "-", col$get_name(), ". Format of ", val, " is not ", col$get_typeData()), call. = FALSE)
+  }
+
+  if (!is.null(col$get_validationStatements())) {
+    validate_res <- validate(val1, col$get_validationStatements())
+    if (!validate_res$result) {
+      stop(validate_res$err_msg, call. = FALSE)
+    }
+  }
+
+  return(val1)
+
+}

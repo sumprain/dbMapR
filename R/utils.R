@@ -87,3 +87,38 @@ compact <- function(x) {
   retx <- vapply(x, function(y) return(is.null(y)||is.na(y)), logical(1L))
   return(x[!retx])
 }
+
+#---------------------------------------------
+all_elements_equal <- function(x) {
+
+  if (length(unique(x)) == 1L) {
+    return(TRUE)
+  } else FALSE
+
+}
+
+#---------------------------------------------
+
+check_fk_val_generic <- function(src, col, val) {
+
+  refTable <- col$get_refTable()
+  refCol <- col$get_refCol()
+
+  chk_status <- TRUE
+  err_msg <- NULL
+
+  if (is.null(val) || is.na(val)) {
+    chk_status <- FALSE
+    err_msg <- "FK cannot be nothing"
+    return(list(chk_status = chk_status, err_msg = err_msg))
+  }
+
+  poss_vals <- dplyr::collect(dplyr::tbl(src, refTable) %>% dplyr::select_(.dots = refCol))
+
+  if (!(val %in% poss_vals[[refCol]])) {
+    err_msg <- paste0("Value of ", val, " to be added to ", col$get_name(), " is not contained in PK: ", refTable, "-", refCol)
+    chk_status <- FALSE
+  }
+
+  return(list(chk_status = chk_status, err_msg = err_msg))
+}

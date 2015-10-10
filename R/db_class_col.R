@@ -36,6 +36,7 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
 
                             private$queue_valToDB <- queue(max_length = cacheVal)
                             private$queue_valToBeUpdated <- queue(max_length = cacheVal)
+                            private$updateContainer <- initiate_updateContainer()
 
                             invisible(self)
                           },
@@ -132,21 +133,11 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                               if (is.null(private$typeData)) {
                                 private$defaultVal <- as.character(defaultVal)
                               } else if (private$method == "create_from_scratch") {
-                                if (!is.null(defaultVal) && !is.na(defaultVal)) {
-                                  defaultVal <- switch(private$typeData,
-                                                     character = ,
-                                                     date = formatted_date(defaultVal),
-                                                     numeric = as.numeric(defaultVal),
-                                                     integer = as.integer(defaultVal),
-                                                     logical = as.logical(defaultVal),
-                                                     SERIAL = ,
-                                                     TIMESTAMP = NULL)
-                                  private$defaultVal <- defaultVal
+                                  private$defaultVal <- corrected_input(self, defaultVal)
                                 }
-                                }
-                              }
-                          invisible(self)
-                          },
+                            }
+                            invisible(self)
+                        },
 
                         set_validationStatements = function(...) {
 
@@ -154,33 +145,10 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
 
                         },
 
-                        add_valFromDB = function(val) {
-                          private$valFromDB <- add_val_to_list(private$valFromDB, val, id, private$cacheVal)
-                          invisible(self)
-                        },
-
                         add_valToDB = function(val) {
 
-                          val1 <- parse_val(val, private$typeData, private$date_input)
+                          private$valToDB <- corrected_input(self, val)
 
-                          if (attr(val1, "format_error")) {
-                            stop(paste0(private$nameTable, "-", private$name, ". Format of ", val, " is not ", private$typeData), call. = FALSE)
-                          }
-
-                          if (!is.null(private$validation_statements)) {
-                            validate_res <- validate(val1, private$validation_statements)
-                            if (!validate_res$result) {
-                              stop(validate_res$err_msg, call. = FALSE)
-                            }
-                          }
-
-                          private$valToDB <- val1
-
-                          invisible(self)
-                        },
-
-                        empty_valFromDB = function() {
-                          private$valFromDB <- empty_list(private$valFromDB)
                           invisible(self)
                         },
 
@@ -200,6 +168,10 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
 
                         get_nameTable = function() {
                             return(private$nameTable)
+                        },
+
+                        get_date_input = function() {
+                          return(private$date_input)
                         },
 
                         get_isPK = function() {
@@ -246,21 +218,26 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                             return(private$defaultVal)
                         },
 
-                        get_valFromDB = function(id = NULL) {
-                          if (is.null(id)) {
-                            return(private$valFromDB)
-                          } else {
-                            return(private$valFromDB[id])
-                          }
-                        },
-
                         get_valToDB = function() {
                           return(private$valToDB)
                         },
 
                         get_queue_valToDB = function() {
                           return(private$queue_valToDB)
+                        },
+
+                        get_queue_valToBeUpdated = function() {
+                          return(private$queue_valToBeUpdated)
+                        },
+
+                        get_updateContainer = function() {
+                          return(private$updateContainer)
+                        },
+
+                        get_validationStatements = function() {
+                          return(private$validation_statements)
                         }
+
                       ),
 
                         private = list(
@@ -279,10 +256,10 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           defaultVal = NULL,   # Default value of the column
                           validation_statements = NULL,
                           cacheVal = NULL,      # integer denoting number of list of values to be stored
-                          valFromDB = list(),    # vector of values from database (result of some query)
                           valToDB = NULL,      # vector of values from front (to be inserted into database)
                           queue_valToDB = NULL,
                           queue_valToBeUpdated = NULL,
+                          updateContainer = NULL,
                           date_input = NULL,
                           method = NULL
                     ))
