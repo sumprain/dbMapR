@@ -157,6 +157,11 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           invisible(self)
                         },
 
+                        revert_updateContainer_null = function() {
+                          revert_env_null(private$updateContainer)
+                          invisible(NULL)
+                        },
+
                         set_cacheVal = function(cacheVal) {
                           private$cacheVal <- cacheVal
                           invisible(self)

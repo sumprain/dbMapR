@@ -73,29 +73,38 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                 return(private$dfForeignKey)
                               },
 
-                              insertIntoDB = function(name_token_col = NULL) {
+                              insertIntoDB = function(token_col_name = NULL) {
 
                                 if (length(private$PKColumn) == 0L) {
                                   stop(paste0("Table: ", private$name, " does not have PK. Every table should have a PK."), call. = FALSE)
                                 }
 
-                                insert_into_table(private$src, self, name_token_col)
-                                insert_into_queue_valToDB(self, name_token_col)
+                                err_ind <- insert_into_table(private$src, self, token_col_name)
+                                insert_into_queue_valToDB(self, token_col_name)
                                 revert_vals_to_null(self)
+
+                                invisible(err_ind)
+
+                              },
+
+                              retrieveRowForUpdate = function(pk_id, token_col_name = NULL) {
+                                df_row <- retrieve_row(private$src, self, pk_id)
+                                fill_update_info(self, df_row, token_col_name)
                                 invisible(self)
-
                               },
 
-                              retrieveRowForUpdate = function(pk_id) {
+                              updateToDB = function(token_col_name = NULL) {
 
-                              },
+                                err_ind <- update_table(private$src, self, token_col_name)
 
-                              updateToDB = function() {
+                                if (!err_ind$is_err) {
+                                  insert_into_queue_valToBeUpdated(self, token_col_name)
+                                }
 
-                              },
+                                invisible(err_ind)
+                              }),
 
-                              deleteRow = function() {}
-                            ), private = list(
+                            private = list(
 
                               name = NULL,               # database name of table
                               columns = list(),          # list containing the columns (dbColumnClass)

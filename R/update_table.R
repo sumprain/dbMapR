@@ -79,16 +79,28 @@ check_fk_val_update <- function(src, col, val) {
 
 #---------------------------------------------------------------
 
+col_names_for_update <- function(table, token_col_name = NULL) {
+
+  col_names <- table$get_nameColumns()
+  pk_col_name <- table$get_PKColumn()
+
+  col_names <- col_names[!(col_names %in% c(pk_col_name, token_col_name))]
+
+  return(col_names)
+
+}
+
+#---------------------------------------------------------------
+
 update_table <- function(src, table, token_col_name = NULL) {
 
   # 1. get all values from table object
 
-  col_names <- table$get_nameColumns()
   pk_col_name <- table$get_PKColumn()
-  type_pk <- table$get_columns()[[pk_col_name]]$get_typeData()
-
-  col_names <- col_names[!(col_names %in% c(pk_col_name, token_col_name))]
+  col_names <- col_names_for_update(table, token_col_name)
   cols <- table$get_columns()[col_names]
+
+  type_pk <- table$get_columns()[[pk_col_name]]$get_typeData()
 
   # 2. get all the modified values from the updateContainer environment.
 
@@ -178,13 +190,46 @@ update_table <- function(src, table, token_col_name = NULL) {
     final_ <- dplyr::sql(paste0(update_, table_, set_, cols_, where_, pk_))
   }
 
-  DBI::dbSendQuery(src$con, final_)
+  err_ind <- err_from_db(src, DBI::dbSendQuery(src$con, final_))
 
   ## TODO: make the updateContainer empty after successful update and store them in a queue.
 
-  return(NULL)
+  invisible(err_ind)
 
 }
 
 #-----------------------------------------------------
 
+insert_into_queue_valToBeUpdated <- function(table, token_col_name = NULL) {
+
+  col_names <- col_names_for_update(table, token_col_name)
+
+  cols <- table$get_columns()[col_names]
+
+  lapply(cols, function(x) {
+    l_str <- as.list(x$get_updateContainer())
+    push(x$get_queue_valToBeUpdated(), l_str)
+    x$revert_updateContainer_null()         # revert updateContainer to NULL
+    l_str <- NULL
+  })
+
+  invisible(NULL)
+
+}
+
+#----------------------------------------------------
+
+revert_env_null <- function(env) {
+
+  objs <- objects(env)
+
+  lapply(objs, function(x) {
+    if (bindingIsLocked(x, env)) {
+      unlockBinding(x, env)
+    }
+    assign(x, NULL, envir = env)
+  })
+
+  return(NULL)
+
+}

@@ -423,5 +423,30 @@ cl_a$validation_statement(is.character(..))
 cl_a$add_val("suman")
 
 
+# make an error handler for errors raised from database. It will return a false and error number and error msg
 
+err_from_db <- function(src, expr, env = parent.env()) {
+
+  q_expr <- lazyeval::lazy(expr, env = env)
+  res <- try(lazyeval::lazy_eval(q_expr), silent = TRUE)
+
+  db_error <- DBI::dbGetException(src$con)
+
+  if (inherits(res, "try-error") && !is.null(db_error)) {
+
+    is_err <- TRUE
+    err_no <- db_error$errorNum
+    err_msg <- db_error$errorMsg
+
+  } else {
+
+    is_err <- FALSE
+    err_no <- NULL
+    err_msg <- NULL
+
+  }
+
+  return(list(is_err = is_err, err_no = err_no, err_msg = err_msg))
+
+}
 

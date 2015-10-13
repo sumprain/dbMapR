@@ -122,3 +122,38 @@ check_fk_val_generic <- function(src, col, val) {
 
   return(list(chk_status = chk_status, err_msg = err_msg))
 }
+
+#-------------------------------------------------
+
+err_from_db <- function(src, expr, env = parent.frame()) {
+
+  q_expr <- lazyeval::lazy(expr, env = env)
+  res <- try(lazyeval::lazy_eval(q_expr), silent = TRUE)
+
+  db_error <- DBI::dbGetException(src$con)
+
+  not_db <- function() {
+    return(inherits(res, "try-error") & is.null(db_error))
+  }
+
+  if (not_db()) {
+    stop("The expression is not pointing to database.", call. = FALSE)
+  }
+
+  if (inherits(res, "try-error")) {
+
+    is_err <- TRUE
+    err_no <- db_error$errorNum
+    err_msg <- db_error$errorMsg
+
+  } else {
+
+    is_err <- FALSE
+    err_no <- NULL
+    err_msg <- NULL
+    DBI::dbClearResult(src$con, res)
+  }
+
+  return(list(is_err = is_err, err_no = err_no, err_msg = err_msg))
+
+}
