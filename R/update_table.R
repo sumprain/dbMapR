@@ -31,7 +31,9 @@ assign_vars <- function(e, orig_val, pk_id, time_stamp = NULL) {
 
 retrieve_row <- function(src, table, pk_id) {
 
-  row <- dplyr::collect(dplyr::tbl(src, table$get_name()) %>% dplyr::filter_(.dots = ~ (dplyr::sql(table$get_PKColumn()) == pk_id)))
+  row_src <- dplyr::tbl(src, table$get_name()) %>% dplyr::filter_(.dots = lazyeval::interp(~(col_name == pk_id), .values = list(col_name = as.name(table$get_PKColumn()), pk_id = pk_id)))
+
+  row <- dplyr::collect(row_src)
 
   if (nrow(row) == 0L) {
     stop(paste0("Table ", table$get_name(), " does not have PK value: ", pk_id, "."), call. = FALSE)
@@ -58,6 +60,7 @@ fill_update_info <- function(table, df_vals, token_col_name = NULL) {
   lapply(table$get_columns(), function(x) {
     col_name <- x$get_name()
     if (!(col_name %in% c(table$get_PKColumn(), token_col_name))) {
+      x$revert_updateContainer_null()
       assign_vars(x$get_updateContainer(), df_vals[[col_name]], pk_val, time_stamp)
     }
   })
@@ -124,19 +127,17 @@ update_table <- function(src, table, token_col_name = NULL) {
 
   })
 
-  names(vals_to_be_updated) <- col_names
-
   fun_type <- if (type_pk == "integer") {
-    return(integer(1L))
+    integer(1L)
   } else if (type_pk == "character") {
-    return(character(1L))
+    character(1L)
   } else if (type_pk == "numeric") {
-    return(numeric(1L))
+    numeric(1L)
   }
 
   # 3. get all pk_vals from the environment
 
-  pk_vals <- vapply(cols, function(x) x$get_updateContainer()[["pk_id"]], FUN = fun_type)
+  pk_vals <- vapply(cols, function(x) x$get_updateContainer()[["pk_id"]], FUN.VALUE = fun_type)
 
   # 3a. check if any of the pk vals are different from others, if so raise error
 
@@ -148,7 +149,7 @@ update_table <- function(src, table, token_col_name = NULL) {
 
   if (!is.null(token_col_name)) {
 
-    time_stamps <- vapply(cols, function(x) x$get_updateContainer()[["time_stamp"]], FUN = character(1L))
+    time_stamps <- vapply(cols, function(x) x$get_updateContainer()[["time_stamp"]], FUN.VALUE = character(1L))
 
     # 4a. check if any of the time stamp is different from others, if so raise error
 
@@ -157,7 +158,7 @@ update_table <- function(src, table, token_col_name = NULL) {
     }
     # 5. get present time stamp from database and check if it is different from the time stamp present in the environment.
 
-    present_time_stamp <- dplyr::collect(dplyr::tbl(src, table$get_name()) %>% dplyr::filter_(.dots = ~ (dplyr::sql(table$get_PKColumn()) == pk_vals[1])))[[token_col_name]]
+    present_time_stamp <- DBI::dbGetQuery(src$con, paste0("SELECT ", token_col_name, " FROM ", table$get_name(), " WHERE ", table$get_PKColumn() , " = ", pk_vals[1]))[[token_col_name]]
 
     if (!(time_stamps[1] %same_time% present_time_stamp)) {
       stop(paste0("The row has been modified from the time it was retrieved for update.\nOriginal timestamp: ", time_stamps[1], ". Time stamp obtained now from database: ", present_time_stamp), call. = FALSE)
@@ -179,12 +180,12 @@ update_table <- function(src, table, token_col_name = NULL) {
   col_vals <- dplyr::escape(unname(vals_to_be_updated),collapse = NULL, parens = FALSE)
   cols_ <- dplyr::sql(paste0(paste0(col_names, " = ", col_vals), collapse = ", "))
   where_ <- dplyr::sql(" WHERE ")
-  pk_col <- dplyr::escape(pk_col_name)
-  pk_val <- dplyr::escape(pk_vals[1])
+  pk_col <- dplyr::escape(dplyr::sql(pk_col_name))
+  pk_val <- dplyr::escape(unname(pk_vals[1]))
   pk_ <- dplyr::sql(paste0(pk_col, " = ", pk_val))
 
   if (!is.null(token_col_name)) {
-    time_stamp <- dplyr::sql(paste0(", ", dplyr::sql(token_col_name), " = ", dplyr::escape(cur_timestamp())))
+    time_stamp <- dplyr::sql(paste0(", ", dplyr::sql(token_col_name), " = ", dplyr::escape(as.character(cur_timestamp()))))
     final_ <- dplyr::sql(paste0(update_, table_, set_, cols_, time_stamp, where_, pk_))
   } else {
     final_ <- dplyr::sql(paste0(update_, table_, set_, cols_, where_, pk_))

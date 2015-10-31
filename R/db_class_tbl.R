@@ -80,8 +80,12 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                 }
 
                                 err_ind <- insert_into_table(private$src, self, token_col_name)
-                                insert_into_queue_valToDB(self, token_col_name)
-                                revert_vals_to_null(self)
+
+                                if (!err_ind$is_err) {
+                                  insert_into_queue_valToDB(self, token_col_name)
+                                  revert_vals_to_null(self)
+
+                                }
 
                                 invisible(err_ind)
 

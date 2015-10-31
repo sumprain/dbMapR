@@ -100,9 +100,6 @@ insert_into_table <- function(src, table, name_token_col = NULL) {
 
   err_ind <- err_from_db(src, DBI::dbSendQuery(src$con, s_insert))
 
-  ## TODO: capture any error from the INSERT action and pass it as value to be later on added to shinywidget validation.
-  ## TODO: check if TRANSACTION can be added to INSERT above
-
   invisible(err_ind)
 }
 

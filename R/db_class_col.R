@@ -208,7 +208,7 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                         },
 
                         get_typeData = function() {
-                            return(private$typeData)
+                          return(private$typeData)
                         },
 
                         get_varSize = function() {
@@ -216,11 +216,11 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                         },
 
                         get_isRequired = function() {
-                            return(private$isRequired)
+                          return(private$isRequired)
                         },
 
                         get_defaultVal = function() {
-                            return(private$defaultVal)
+                          return(private$defaultVal)
                         },
 
                         get_valToDB = function() {

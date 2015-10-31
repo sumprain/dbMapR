@@ -200,7 +200,7 @@ f_scen1 <- function() {
   cols$colbool$add_valToDB(TRUE)
   #cols$coltimestamp$add_valToDB(cur_timestamp())
 
-  tb1$insertIntoDB(name_token_col = "coltimestamp")
+  tb1$insertIntoDB(token_col_name = "coltimestamp")
 
 }
 
@@ -217,7 +217,7 @@ f_scen2 <- function() {
   cols$colbool$add_valToDB(TRUE)
   #cols$coltimestamp$add_valToDB(cur_timestamp())
 
-  tb1$insertIntoDB(name_token_col = "coltimestamp")
+  tb1$insertIntoDB(token_col_name = "coltimestamp")
 
   return(DBI::dbGetQuery(src_sq$con, "select * from table1")[, -7])
 }
@@ -233,7 +233,7 @@ f_scen3 <- function() {
   cols$colbool$add_valToDB(TRUE)
   #cols$coltimestamp$add_valToDB(cur_timestamp())
 
-  tb1$insertIntoDB(name_token_col = "coltimestamp")
+  tb1$insertIntoDB(token_col_name = "coltimestamp")
 
   return(DBI::dbGetQuery(src_sq$con, "select * from table1")[, -7])
 
@@ -250,7 +250,7 @@ f_scen4 <- function() {
   cols$colbool$add_valToDB(TRUE)
   #cols$coltimestamp$add_valToDB(cur_timestamp())
 
-  tb1$insertIntoDB(name_token_col = "coltimestamp")
+  tb1$insertIntoDB(token_col_name = "coltimestamp")
 
   return(DBI::dbGetQuery(src_sq$con, "select * from table1")[, -7])
 
@@ -265,7 +265,7 @@ f_scen_fk_null <- function() {
   cols2$colchar$add_valToDB("adhrit")
   #cols2$coltimestamp$add_valToDB(cur_timestamp())
 
-  tb2$insertIntoDB(name_token_col = "coltimestamp")
+  tb2$insertIntoDB(token_col_name = "coltimestamp")
 }
 
 f_scen_fk_not_in_pk <- function() {
@@ -273,7 +273,7 @@ f_scen_fk_not_in_pk <- function() {
   cols2$colchar$add_valToDB("adhrit")
   #cols2$coltimestamp$add_valToDB(cur_timestamp())
 
-  tb2$insertIntoDB(name_token_col = "coltimestamp")
+  tb2$insertIntoDB(token_col_name = "coltimestamp")
 }
 
 f_scen_fk_correct <- function() {
@@ -281,7 +281,7 @@ f_scen_fk_correct <- function() {
   cols2$colchar$add_valToDB("adhrit")
   #cols2$coltimestamp$add_valToDB(cur_timestamp())
 
-  tb2$insertIntoDB(name_token_col = "coltimestamp")
+  tb2$insertIntoDB(token_col_name = "coltimestamp")
 
   return(DBI::dbGetQuery(src_sq$con, "select * from table2")[, -c(1, 4)])
 }
@@ -293,7 +293,7 @@ f_scen_nopk <- function() {
 
   cols3$fk_2$add_valToDB(1)
   cols3$colreal$add_valToDB(2.36)
-  tb3$insertIntoDB(name_token_col = "coltimestamp")
+  tb3$insertIntoDB(token_col_name = "coltimestamp")
 
 }
 

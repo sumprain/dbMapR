@@ -1,6 +1,6 @@
 ---
 title: "R6 classes denoting database structure"
-author: "Dr Suman Kumar"
+author: "Suman Kumar"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
