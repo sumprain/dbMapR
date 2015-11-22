@@ -35,7 +35,7 @@ test_that("Database is of SQLite", {
 
 # create new database class --------------
 
-db1 <- dbfrontendR::dbDatabaseClass$new(src_sq, date_input = "ymd",
+db1 <- dbMapR::dbDatabaseClass$new(src_sq, date_input = "ymd",
                                         method = "extract_from_db")
 
 # check contents of database object

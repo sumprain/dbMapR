@@ -7,7 +7,7 @@ using namespace Rcpp;
 
 // nextNumber
 int nextNumber(IntegerVector x);
-RcppExport SEXP dbfrontendR_nextNumber(SEXP xSEXP) {
+RcppExport SEXP dbMapR_nextNumber(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;

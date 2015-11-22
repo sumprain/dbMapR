@@ -1,4 +1,4 @@
-#' @useDynLib dbfrontendR
+#' @useDynLib dbMapR
 #' @importFrom Rcpp sourceCpp
 #' @importFrom magrittr "%>%"
 NULL

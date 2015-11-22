@@ -1,7 +1,9 @@
+#' @export
 t_stamp <- function(x) {
   UseMethod("t_stamp")
 }
 
+#' @export
 cur_timestamp <- function(digits = 3L, tz = "Asia/Kolkata") {
 
   if (!(tz %in% OlsonNames())) {
@@ -16,34 +18,37 @@ return(structure(paste0(c(res, tz), collapse = "@@"), class = "t_stamp"))
 
 }
 
-as.POSIXct.t_stamp <- function(ts, tz_to_be_set = NULL) {
+#' @export
+as.POSIXct.t_stamp <- function(x, tz = NULL, ...) {
 
-  ts_split <- strsplit(ts, "@@", fixed = TRUE)[[1]]
+  ts_split <- strsplit(x, "@@", fixed = TRUE)[[1]]
   res <- as.POSIXct(ts_split[1], tz = ts_split[2], format = "%Y%m%d%H%M%OS")
 
 
-  if (!is.null(tz_to_be_set)) {
-    res <- lubridate::with_tz(res, tzone = tz_to_be_set)
+  if (!is.null(tz)) {
+    res <- lubridate::with_tz(res, tzone = tz)
   }
 
   return(res)
 
 }
 
-t_stamp.character <- function(char) {
+#' @export
+t_stamp.character <- function(x) {
 
-  if (check_format_tstamp(char)) {
-    class(char) <- "t_stamp"
+  if (check_format_tstamp(x)) {
+    class(x) <- "t_stamp"
   } else {
-    stop("Format of string nor conforming to timestamp. Get timestamp from cur_timestamp() function.")
+    stop("Format of string not conforming to timestamp. Get timestamp from cur_timestamp() function.")
   }
-  char
+  x
 
   }
 
-as.character.t_stamp <- function(ts) {
-  class(ts) <- "character"
-  ts
+#' @export
+as.character.t_stamp <- function(x, ...) {
+  class(x) <- "character"
+  x
 }
 
 change_to_t_stamp <- function(ts) {
@@ -55,6 +60,7 @@ change_to_t_stamp <- function(ts) {
 
 }
 
+#' @export
 `%earlier%` <- function(ts1, ts2) {
 
   ts1 <- change_to_t_stamp(ts1)
@@ -67,6 +73,7 @@ change_to_t_stamp <- function(ts) {
 
 }
 
+#' @export
 `%later%` <- function(ts1, ts2) {
 
   ts1 <- change_to_t_stamp(ts1)
@@ -79,6 +86,7 @@ change_to_t_stamp <- function(ts) {
 
 }
 
+#' @export
 `%same_time%` <- function(ts1, ts2) {
 
   ts1 <- change_to_t_stamp(ts1)
@@ -91,6 +99,7 @@ change_to_t_stamp <- function(ts) {
 
 }
 
+#' @export
 check_format_tstamp <- function(x) {
 
   split_pattern <- "@@"

@@ -6,6 +6,6 @@
 #' If it does not find any missing value, it return number next to the last number.
 #' @param x vector of numbers.
 nextNumber <- function(x) {
-    .Call('dbfrontendR_nextNumber', PACKAGE = 'dbfrontendR', x)
+    .Call('dbMapR_nextNumber', PACKAGE = 'dbMapR', x)
 }
 

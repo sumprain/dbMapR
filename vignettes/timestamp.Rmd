@@ -1,58 +1,71 @@
 ---
-title: "Time stamps in dbFrontendR"
-author: "Suman Kumar"
+title: "Timestamps in dbMapR"
+author: "Suman Kumar Pramanik"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{Timestamps in dbMapR}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
-
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
-
-## Vignette Info
-
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
-
-## Styles
-
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
-
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+```{r include=FALSE}
+library(dbMapR)
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
+## Requirement
 
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
+Time stamping the time of row insertion is required to look for any merge conflict, when that row is to be updated at a later time. It becomes more relevant in a web based, multiple access and asynchronous database, where multiple users are accessing and changing a particular row in the database. R does not have any robust timestamp mechanism. Below, I give the details of using the time stamping mechanism built for this package.
 
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
+## Structure of the timestamp
 
-## More Examples
+Timestamps are basically a `character` with following specific format, to which a `class` attribute has been added to `t_stamp`.
 
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+```
+yyyymmddhhmmss{may be a decimal mark followed by upto 6 digits}@@Olson_compatible_timezone
 ```
 
-Also a quote using `>`:
+Example: `20151030123634.998@@UTC`
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+## `cur_timestamp`
+
+We can make current timestamp using `cur_timestamp` function. It is the only way to create a timestamp (of `t_stamp` class). This makes sure that we cannot make timestamps corresponding to any other time point other than current time point. `cur_timestamp` function uses `Sys.time` function to get the current time point. We will have to add a time zone (through `tz` parameter), which should be one of the names mantioned in `OlsonNames()` function. Do check `OlsonNames()` to see for the valid `tz` names.
+
+## Coercion to other classes
+
+`as.character` coerces the `t_stamp` object to `character`. The timestamp is stored in database as `character`.
+
+`as.POSIXct` coerces the `t_stamp` object to `POSIXct` class.
+
+`t_stamp.character` function coerces a `character` object into a `t_stamp` object given the format is conforming with `t_stamp` class as checked by the utility function `check_format_tstamp`.
+
+## Comparision between two timestamps
+
+`%earlier%`, `%later%` and `%same_time%` are the function which compares two `t_stamp` objects for their chronological order. They return `boolean` value.
+
+## Examples
+
+### Making new timestamp
+
+```{r}
+ts1 <- cur_timestamp(digits = 3L, tz = "Asia/Kolkata")
+```
+
+### Converting timestamp into POSIXct
+
+```{r}
+as.POSIXct(ts1)   # keep default tz
+as.POSIXct(ts1, tz = "UTC")   # changing tz to UTC
+```
+
+### Checking for chronological order of two timestamp objects
+
+```{r}
+ts2 <- cur_timestamp(tz = "UTC")
+ts3 <- cur_timestamp()
+
+ts2 %later% ts3         # TRUE
+```
+
+`ts2` is occuring before `ts3`, but it is occuring at `UTC`, whereas `ts3` is occuring at `Asia/Kolkata` time zone (UTC - 5.5 hours). So, `ts2` is occuring later than `ts3`.
+

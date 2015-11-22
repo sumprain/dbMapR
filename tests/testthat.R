@@ -1,4 +1,4 @@
 library(testthat)
-library(dbfrontendR)
+library(dbMapR)
 
-test_check("dbfrontendR")
+test_check("dbMapR")

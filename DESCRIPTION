@@ -1,11 +1,11 @@
-Package: dbfrontendR
+Package: dbMapR
 Type: Package
-Title: Miscellaneous functions for accessing Database and creating front end
+Title: Functions and classes to access Database
 Version: 0.0.0.0.9000
 Date: 2015-07-01
 Author: Suman Kumar <sumprain@yahoo.com>
 Maintainer: Suman Kumar <sumprain@yahoo.com>
-Description: Miscellaneous functions for accessing Database and creating front end.
+Description: Functions and classes to access Database.
 License: What license is it under?
 LazyData: TRUE
 Imports: dplyr,

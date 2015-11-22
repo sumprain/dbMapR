@@ -1,4 +1,4 @@
-# dbfrontendR
+# dbMapR
 
 ## Introduction
 
