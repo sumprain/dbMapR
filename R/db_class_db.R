@@ -2,7 +2,7 @@
 dbDatabaseClass <- R6::R6Class('dbDatabaseClass',   ## TODO: make a mechanism so that only required tables are loaded and later on more tables can be added or deleted to dbClass
 
                                public = list(
-                                 initialize = function(src, tbls_tobe_inserted = NULL, date_input = c("dmy", "mdy", "ymd"), method = c("extract_from_db", "create_from_scratch")) {
+                                 initialize = function(src, tbls_tobe_inserted = NULL, date_input = c("ymd", "dmy", "mdy"), method = c("extract_from_db", "create_from_scratch")) {
                                    date_input <- match.arg(date_input)
                                    method <- match.arg(method)
                                    private$method <- method

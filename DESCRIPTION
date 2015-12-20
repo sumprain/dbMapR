@@ -6,9 +6,10 @@ Date: 2015-07-01
 Author: Suman Kumar <sumprain@yahoo.com>
 Maintainer: Suman Kumar <sumprain@yahoo.com>
 Description: Functions and classes to access Database.
-License: What license is it under?
+License: GPL-3
 LazyData: TRUE
-Imports: dplyr,
+Imports:
+    dplyr,
     Rcpp,
     assertthat,
     DBI,
@@ -20,6 +21,8 @@ Imports: dplyr,
     lazyeval,
     lubridate
 LinkingTo: Rcpp
-Suggests: testthat,
+Suggests:
+    testthat,
     knitr
 VignetteBuilder: knitr
+RoxygenNote: 5.0.1
