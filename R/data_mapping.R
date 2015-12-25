@@ -86,7 +86,7 @@ validate <- function(val, condition) {
 
 # check input for correctness (for add_valToDB and update) --------------------------------
 
-corrected_input <- function(col, val) {
+corrected_input <- function(val, col) {
 
   val1 <- parse_val(val, col$get_typeData(), col$get_date_input())
 

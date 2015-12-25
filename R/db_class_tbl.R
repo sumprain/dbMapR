@@ -52,6 +52,21 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                 private$dfForeignKey <- dfForeignKey
                                 invisible(self)
                               },
+                              
+                              set_masterTable = function(tbl_name = NULL) {
+                                if (is.null(tbl_name)) {
+                                  private$masterTable <- NULL
+                                } else {
+                                  dffk <- private$dfForeignKey
+                                  fk_tbls <- dffk[(dffk$isFK == 1) & !is.na(dffk$isFK), "foreign_table_name"][[1]]
+                                  if ((length(fk_tbls) > 0L) && (tbl_name %in% fk_tbls)) {
+                                    private$masterTable <- tbl_name
+                                  } else {
+                                    stop("Suggested table name is not amongst the list of linked tables.",call. = FALSE)
+                                  }
+                                }
+                                invisible(self)
+                              },
 
                               get_name = function() {
                                 return(private$name)
@@ -71,6 +86,10 @@ dbTableClass <- R6::R6Class('dbTableClass',
 
                               get_dfForeignKey = function() {
                                 return(private$dfForeignKey)
+                              },
+                              
+                              get_masterTable = function() {
+                                private$masterTable
                               },
 
                               insertIntoDB = function(token_col_name = NULL) {
@@ -115,6 +134,7 @@ dbTableClass <- R6::R6Class('dbTableClass',
                               PKColumn = NULL,           # name of PK column
                               nameColumns = NULL,        # vector representing name of columns
                               dfForeignKey = NULL,       # dataframe containing the FK details with col names: col_name, foreign_tbl_name, foreign_col_name
+                              masterTable = NULL,        # master table (one of the tables with PK linking with FK cols)
                               method = NULL,
                               src = NULL,
 

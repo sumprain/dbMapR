@@ -118,7 +118,7 @@ update_table <- function(src, table, token_col_name = NULL) {
     }
 
     if (!is.null(val)) {
-      val_modified <- corrected_input(x, val)
+      val_modified <- corrected_input(val, x)
     } else {
       val_modified <- NULL
     }

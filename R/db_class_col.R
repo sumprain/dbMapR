@@ -45,6 +45,11 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                             private$name <- as.character(name)
                             invisible(self)
                           },
+                        
+                        set_label = function(text) {
+                          private$label <- as.character(text)
+                          invisible(self)
+                        },
 
                         set_nameTable = function(nameTable) {
                             private$nameTable <- as.character(nameTable)
@@ -74,9 +79,14 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                             private$refTable <- as.character(refTable)
                             invisible(self)
                           },
-
+                        
                         set_refCol = function(refCol) {
-                            private$refCol <- as.character(refCol)
+                          private$refCol <- as.character(refCol)
+                          invisible(self)
+                        },
+
+                        set_textColFK = function(textColFK) {
+                            private$textColFK <- as.character(textColFK)
                             invisible(self)
                           },
 
@@ -127,16 +137,13 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
 
                         set_defaultVal = function(defaultVal) {
 
-                            if (private$method == "extract_from_db") {
-                              private$defaultVal <- defaultVal
-                            } else {
-                              if (is.null(private$typeData)) {
-                                private$defaultVal <- as.character(defaultVal)
-                              } else if (private$method == "create_from_scratch") {
-                                  private$defaultVal <- corrected_input(self, defaultVal)
-                                }
-                            }
-                            invisible(self)
+                          if (is.null(private$typeData)) {
+                            private$defaultVal <- as.character(defaultVal)
+                          } else if (!is.null(defaultVal)) {
+                            private$defaultVal <- corrected_input(defaultVal, self)
+                          }
+                          invisible(self)
+                        
                         },
 
                         set_validationStatements = function(...) {
@@ -147,7 +154,7 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
 
                         add_valToDB = function(val) {
 
-                          private$valToDB <- corrected_input(self, val)
+                          private$valToDB <- corrected_input(val, self)
 
                           invisible(self)
                         },
@@ -167,8 +174,32 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           invisible(self)
                         },
 
+                        set_isSelect = function(isSelect) {
+                          stopifnot(is.logical(isSelect) | isSelect %in% c(0, 1))
+                          private$isSelect <- as.integer(1*isSelect)
+                          invisible(self)
+                        },
+                      
+                        set_selectValCol = function(valCol) {
+                          if (is.null(private$typeData)) {
+                            private$selectValCol <- as.character(valCol)
+                          } else if (!is.null(valCol)) {
+                            private$selectValCol <- unlist(lapply(valCol, corrected_input, col = self))
+                          }
+                          invisible(self)
+                        },
+                      
+                        set_selectTextCol = function(textCol) {
+                          private$selectTextCol <- as.character(textCol)
+                          invisible(self)
+                        },
+                      
                         get_name = function() {
                             return(private$name)
+                        },
+                      
+                        get_label = function() {
+                          return(private$label)
                         },
 
                         get_nameTable = function() {
@@ -194,9 +225,13 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                         get_refTable = function() {
                             return(private$refTable)
                         },
-
+                      
                         get_refCol = function() {
-                            return(private$refCol)
+                          return(private$refCol)
+                        },
+
+                        get_textColFK = function() {
+                            return(private$textColFK)
                         },
 
                         get_updateRule = function() {
@@ -241,6 +276,18 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
 
                         get_validationStatements = function() {
                           return(private$validation_statements)
+                        },
+                      
+                        get_isSelect = function() {
+                          return(private$isSelect)
+                        },
+                      
+                        get_selectValCol = function() {
+                          return(private$selectValCol)
+                        },
+                      
+                        get_selectTextCol = function() {
+                          return(private$selectTextCol)
                         }
 
                       ),
@@ -248,16 +295,18 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                         private = list(
                           name = NULL,         # database name of column
                           nameTable = NULL,    # database name of table which contains the column
+                          label = NULL,        # label for shiny front end
                           isPK = NULL,         # Is the column primary key column (1, 0)
                           PKNextVal = NULL,
                           isFK = NULL,         # Is the colum foreign key column (1, 0)
                           refTable = NULL,     # If FK, database name of the referenced table (we will assume that the referenced column is                                                   the PK of refTable)
                           refCol = NULL,       # name of the PK column of FK table
+                          textColFK = NULL,    # name of the column of the table for displaying text for FK
                           updateRule = NULL,
                           deleteRule = NULL,
                           typeData = NULL,     # Character vector representing the type of data which will be stored in the column (one of the previously set values only)
                           varSize =  NULL,
-                          isRequired = NULL,   # Whether the column can be kept empty
+                          isRequired = NULL,   # Whether the column can be kept empty (1, 0)
                           defaultVal = NULL,   # Default value of the column
                           validation_statements = NULL,
                           cacheVal = NULL,      # integer denoting number of list of values to be stored
@@ -266,7 +315,10 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           queue_valToBeUpdated = NULL,
                           updateContainer = NULL,
                           date_input = NULL,
-                          method = NULL
+                          method = NULL,
+                          isSelect = NULL,
+                          selectValCol = NULL,   # if select widget, vector of values
+                          selectTextCol = NULL   # if select widget, vector of texts
                     ))
 
 

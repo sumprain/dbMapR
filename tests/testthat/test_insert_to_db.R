@@ -130,7 +130,6 @@ col1 <- dbColumnClass$new(name = "col1",
                           isPK = 0,
                           isFK = 0,
                           isRequired = 1,
-                          defaultVal = 1,
                           typeData = "date",
                           method = "extract_from_db",
                           date_input = "ymd")

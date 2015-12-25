@@ -46,6 +46,15 @@ dbDatabaseClass <- R6::R6Class('dbDatabaseClass',   ## TODO: make a mechanism so
                                    DBI::dbDisconnect(private$connection$con)
                                    private$connection <- NULL
                                    return("Successfully disconnected")
+                                 },
+                                 
+                                 tbls_tobe_kept = function(tbl_names) {
+                                   if (!(all(tbl_names %in% private$nameTables))) {
+                                     stop("One or more table names to be subsetted are not included in original table name list.", call. = FALSE)
+                                   }
+                                   private$tables <- private$tables[tbl_names]
+                                   self$set_nameTables(tbl_names)
+                                   invisible(self)
                                  }),
 
                                private = list(
