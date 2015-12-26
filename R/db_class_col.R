@@ -134,14 +134,14 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           },
 
                         set_defaultVal = function(defaultVal) {
-
-                          if (is.null(private$typeData)) {
-                            private$defaultVal <- as.character(defaultVal)
-                          } else if (!is.null(defaultVal)) {
-                            private$defaultVal <- corrected_input(defaultVal, self)
+                          if (!private$isPK) {
+                            if (is.null(private$typeData)) {
+                              private$defaultVal <- as.character(defaultVal)
+                            } else if (!is.null(defaultVal)) {
+                              private$defaultVal <- corrected_input(defaultVal, self)
+                            }
                           }
                           invisible(self)
-                        
                         },
 
                         set_validationStatements = function(...) {

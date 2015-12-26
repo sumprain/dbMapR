@@ -133,7 +133,10 @@ dbTableClass <- R6::R6Class('dbTableClass',
 
                                 for (i in 1:nrow(df_col)) {
                                   intdf <- df_col[i, ]
-
+                                  vars_2b_locked <- c("name", "nameTable", "isPK", 
+                                                      "isFK", "refTable", "refCol", 
+                                                      "updateRule", "deleteRule", 
+                                                      "typeData", "varSize", "isRequired")
                                   intdf[["udt_name"]] <- change_data_type(match_text(intdf[["udt_name"]]))
                                   private$columns[[intdf[["column_name"]]]] <- dbColumnClass$new(name = intdf[["column_name"]],
                                           nameTable = self$get_name(),
@@ -148,6 +151,9 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                           isRequired = intdf[["is_required"]],
                                           defaultVal = intdf[["column_default"]],
                                           date_input = date_input)
+                                  lapply(vars_2b_locked, function(x) {
+                                    lockBinding(x, private$columns[[intdf[["column_name"]]]]$.__enclos_env__$private)
+                                  })
                                 }
                                 invisible(NULL)
                               }
