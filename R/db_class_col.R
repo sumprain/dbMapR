@@ -15,11 +15,9 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                                                 isRequired = NULL,
                                                 defaultVal = NULL,
                                                 date_input = c("dmy", "mdy", "ymd"),
-                                                method = c("create_from_scratch", "extract_from_db"),
                                                 cacheVal = 5L) {
 
                             private$date_input <- match.arg(date_input)
-                            private$method <- match.arg(method)
                             self$set_name(name)
                             self$set_nameTable(nameTable)
                             self$set_isPK(isPK)
@@ -315,7 +313,6 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           queue_valToBeUpdated = NULL,
                           updateContainer = NULL,
                           date_input = NULL,
-                          method = NULL,
                           isSelect = NULL,
                           selectValCol = NULL,   # if select widget, vector of values
                           selectTextCol = NULL   # if select widget, vector of texts

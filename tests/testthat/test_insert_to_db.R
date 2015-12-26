@@ -48,32 +48,28 @@ col1 <- dbColumnClass$new(name = "col1",
                          isFK = 0,
                          isRequired = 1,
                          defaultVal = 1,
-                         typeData = "integer",
-                         method = "extract_from_db")
+                         typeData = "integer")
 
 col2 <- dbColumnClass$new(name = "col2",
                           nameTable = "table1",
                           isPK = 0,
                           isFK = 0,
                           isRequired = 1,
-                          typeData = "integer",
-                          method = "extract_from_db")
+                          typeData = "integer")
 
 col3 <- dbColumnClass$new(name = "col3",
                           nameTable = "table1",
                           isPK = 0,
                           isFK = 0,
                           isRequired = 0,
-                          typeData = "integer",
-                          method = "extract_from_db")
+                          typeData = "integer")
 
 col4 <- dbColumnClass$new(name = "col4",
                           nameTable = "table1",
                           isPK = 0,
                           isFK = 0,
                           isRequired = 1,
-                          typeData = "integer",
-                          method = "extract_from_db")
+                          typeData = "integer")
 
 col4$add_valToDB(56L)
 
@@ -82,8 +78,7 @@ col5 <- dbColumnClass$new(name = "col5",
                           isPK = 0,
                           isFK = 1,
                           isRequired = 0,
-                          typeData = "integer",
-                          method = "extract_from_db")
+                          typeData = "integer")
 
 test_that("required constraint is valid", {
   expect_true(is_nothing_allowed(col1))
@@ -103,8 +98,7 @@ col1 <- dbColumnClass$new(name = "col1",
                           isFK = 0,
                           isRequired = 1,
                           defaultVal = 1,
-                          typeData = "integer",
-                          method = "extract_from_db")
+                          typeData = "integer")
 
 col1$set_validationStatements(.. > 10, .. <= 20)
 
@@ -131,7 +125,6 @@ col1 <- dbColumnClass$new(name = "col1",
                           isFK = 0,
                           isRequired = 1,
                           typeData = "date",
-                          method = "extract_from_db",
                           date_input = "ymd")
 
 col1$set_validationStatements(.. < lubridate::today())
@@ -182,7 +175,7 @@ DBI::dbSendQuery(src_sq$con, "CREATE TABLE table3 (
 
 DBI::dbClearResult(src_sq$con)
 
-db1 <- dbDatabaseClass$new(src_sq, method = "extract_from_db", date_input = "ymd")
+db1 <- dbDatabaseClass$new(src_sq, date_input = "ymd")
 
 tb1 <- db1$get_tables()$table1
 cols <- tb1$get_columns()

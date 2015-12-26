@@ -18,7 +18,7 @@ DBI::dbClearResult(src_sq$con)
 
 # create database tree based on dbDatabaseClass
 
-db1 <- dbDatabaseClass$new(src_sq, method = "extract_from_db", date_input = "ymd")
+db1 <- dbDatabaseClass$new(src_sq, date_input = "ymd")
 
 tb1 <- db1$get_tables()$table1
 cols <- tb1$get_columns()
