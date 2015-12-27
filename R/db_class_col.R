@@ -4,6 +4,7 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
 
                           initialize = function(name,
                                                 nameTable,
+                                                parentTable,
                                                 isPK = NULL,
                                                 isFK = NULL,
                                                 refTable = NULL,
@@ -20,6 +21,7 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                             private$date_input <- match.arg(date_input)
                             self$set_name(name)
                             self$set_nameTable(nameTable)
+                            self$set_parentTable(parentTable)
                             self$set_isPK(isPK)
                             self$set_isFK(isFK)
                             self$set_refTable(refTable)
@@ -53,7 +55,12 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                             private$nameTable <- as.character(nameTable)
                             invisible(self)
                           },
-
+                        
+                        set_parentTable = function(table) {
+                          private$parentTable <- table
+                          invisible(self)
+                        },
+                        
                         set_isPK = function(isPK) {
                             stopifnot(is.logical(isPK) | isPK %in% c(0, 1))
                             private$isPK <- as.integer(1*isPK)
@@ -201,7 +208,11 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                         },
 
                         get_nameTable = function() {
-                            return(private$nameTable)
+                          return(private$nameTable)
+                        },
+                      
+                        get_parentTable = function() {
+                          return(private$parentTable)
                         },
 
                         get_date_input = function() {
@@ -293,6 +304,7 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                         private = list(
                           name = NULL,         # database name of column
                           nameTable = NULL,    # database name of table which contains the column
+                          parentTable = NULL,  # parent table object
                           label = NULL,        # label for shiny front end
                           isPK = NULL,         # Is the column primary key column (1, 0)
                           PKNextVal = NULL,

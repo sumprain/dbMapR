@@ -1,7 +1,7 @@
 #' @export
 dbTableClass <- R6::R6Class('dbTableClass',
                             public = list(
-                              initialize = function(tbl_name, src, date_input = c("dmy", "mdy", "ymd")) {
+                              initialize = function(tbl_name, src, parentDB, date_input = c("dmy", "mdy", "ymd")) {
                                 #browser()
                                 if (!(tbl_name %in% dplyr::db_list_tables(src$con)))
                                   stop(paste0(tbl_name, " not present in the DB."))
@@ -9,6 +9,7 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                 date_input <- match.arg(date_input)
                                 self$set_name(tbl_name)
                                 private$src <- src
+                                self$set_parentDB(parentDB)
 
                                 df_col1 <- getColumnInfo(private$src, self$get_name())
                                 df_col_pk <- getKeyInfo_pk(private$src, self$get_name())
@@ -59,6 +60,11 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                 }
                                 invisible(self)
                               },
+                              
+                              set_parentDB = function(db) {
+                                private$parentDB <- db
+                                invisible(self)
+                              },
 
                               get_name = function() {
                                 return(private$name)
@@ -84,6 +90,10 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                 private$masterTable
                               },
 
+                              get_parentDB = function() {
+                                private$parentDB
+                              },
+                              
                               insertIntoDB = function(token_col_name = NULL) {
 
                                 if (length(private$PKColumn) == 0L) {
@@ -127,19 +137,21 @@ dbTableClass <- R6::R6Class('dbTableClass',
                               nameColumns = NULL,        # vector representing name of columns
                               dfForeignKey = NULL,       # dataframe containing the FK details with col names: col_name, foreign_tbl_name, foreign_col_name
                               masterTable = NULL,        # master table (one of the tables with PK linking with FK cols)
+                              parentDB = NULL,           # parent DB object
                               src = NULL,
 
                               fill_with_cols = function(df_col, date_input) {
 
                                 for (i in 1:nrow(df_col)) {
                                   intdf <- df_col[i, ]
-                                  vars_2b_locked <- c("name", "nameTable", "isPK", 
+                                  vars_2b_locked <- c("name", "nameTable", "parentTable", "isPK", 
                                                       "isFK", "refTable", "refCol", 
                                                       "updateRule", "deleteRule", 
                                                       "typeData", "varSize", "isRequired")
                                   intdf[["udt_name"]] <- change_data_type(match_text(intdf[["udt_name"]]))
                                   private$columns[[intdf[["column_name"]]]] <- dbColumnClass$new(name = intdf[["column_name"]],
                                           nameTable = self$get_name(),
+                                          parentTable = self,
                                           isPK = as.integer(intdf[["isPK"]]),
                                           isFK = as.integer(intdf[["isFK"]]),
                                           refTable = intdf[["foreign_table_name"]],

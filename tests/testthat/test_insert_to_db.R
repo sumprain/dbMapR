@@ -44,6 +44,7 @@ test_that("data parsed correctly before inserting into db", {
 
 col1 <- dbColumnClass$new(name = "col1",
                          nameTable = "table1",
+                         parentTable = "tab1",
                          isPK = 0,
                          isFK = 0,
                          isRequired = 1,
@@ -52,6 +53,7 @@ col1 <- dbColumnClass$new(name = "col1",
 
 col2 <- dbColumnClass$new(name = "col2",
                           nameTable = "table1",
+                          parentTable = "tab1",
                           isPK = 0,
                           isFK = 0,
                           isRequired = 1,
@@ -59,6 +61,7 @@ col2 <- dbColumnClass$new(name = "col2",
 
 col3 <- dbColumnClass$new(name = "col3",
                           nameTable = "table1",
+                          parentTable = "tab1",
                           isPK = 0,
                           isFK = 0,
                           isRequired = 0,
@@ -66,6 +69,7 @@ col3 <- dbColumnClass$new(name = "col3",
 
 col4 <- dbColumnClass$new(name = "col4",
                           nameTable = "table1",
+                          parentTable = "tab1",
                           isPK = 0,
                           isFK = 0,
                           isRequired = 1,
@@ -75,6 +79,7 @@ col4$add_valToDB(56L)
 
 col5 <- dbColumnClass$new(name = "col5",
                           nameTable = "table1",
+                          parentTable = "tab1",
                           isPK = 0,
                           isFK = 1,
                           isRequired = 0,
@@ -94,6 +99,7 @@ rm(col1, col2, col3, col4, col5)
 
 col1 <- dbColumnClass$new(name = "col1",
                           nameTable = "table1",
+                          parentTable = "tab1",
                           isPK = 0,
                           isFK = 0,
                           isRequired = 1,
@@ -121,6 +127,7 @@ rm(col1)
 
 col1 <- dbColumnClass$new(name = "col1",
                           nameTable = "table1",
+                          parentTable = "tab1",
                           isPK = 0,
                           isFK = 0,
                           isRequired = 1,

@@ -61,7 +61,7 @@ dbDatabaseClass <- R6::R6Class('dbDatabaseClass',
                                  
                                  populateTables = function(src, nameTables, date_input) {
                                    for (i in 1:length(nameTables)) {
-                                     private$tables[[nameTables[i]]] <- dbTableClass$new(nameTables[i], src, date_input)
+                                     private$tables[[nameTables[i]]] <- dbTableClass$new(nameTables[i], src, self, date_input)
                                    }
                                  }
                                ))

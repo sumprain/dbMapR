@@ -65,6 +65,12 @@ test_that("Proper locking of columns are done.", {
   expect_equal(colint$set_label("col int")$get_label(), "col int")
 })
 
+# check network of db object is functioning properly
+
+test_that("Database network graph is correct", {
+  expect_equal(colint$get_parentTable()$get_parentDB()$get_nameTables(), c("table1", "table2", "table3"))
+})
+
 # check contents of table2 object
 
 tb2 <- db1$get_tables()$table2
@@ -133,7 +139,7 @@ test_that("table1 colint has appropriate datatype for selectValCol", {
 
 # check whether table subsetting is done correctly in cloned database
 
-db2 <- db1$clone()
+db2 <- db1$clone(deep = TRUE)
 tbl_to_keep <- c("table1", "table2")
 db2$tbls_tobe_kept(tbl_to_keep)
 
@@ -142,6 +148,15 @@ test_that("db2 is properly cloned from db1", {
   expect_equal(length(db1$get_tables()), 3L)
   expect_equal(db2$get_nameTables(), c("table1", "table2"))
   expect_equal(db1$get_nameTables(), c("table1", "table2", "table3"))
+})
+
+# check whether DB network is functioning properly for cloned DB
+
+tb1 <- db2$get_tables()$table1
+colint <- tb1$get_columns()$colint
+
+test_that("DB network is functioning properly for cloned DB", {
+  expect_equal(colint$get_parentTable()$get_parentDB()$get_nameTables(), c("table1", "table2", "table3"))
 })
 
 # check whether database connection is removed successfully
