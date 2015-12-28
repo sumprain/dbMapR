@@ -147,7 +147,7 @@ dbTableClass <- R6::R6Class('dbTableClass',
                                   vars_2b_locked <- c("name", "nameTable", "parentTable", "isPK", 
                                                       "isFK", "refTable", "refCol", 
                                                       "updateRule", "deleteRule", 
-                                                      "typeData", "varSize", "isRequired")
+                                                      "typeData", "varSize", "defaultVal", "isRequired")
                                   intdf[["udt_name"]] <- change_data_type(match_text(intdf[["udt_name"]]))
                                   private$columns[[intdf[["column_name"]]]] <- dbColumnClass$new(name = intdf[["column_name"]],
                                           nameTable = self$get_name(),

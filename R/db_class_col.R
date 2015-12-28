@@ -141,19 +141,24 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           },
 
                         set_defaultVal = function(defaultVal) {
-                          if (!private$isPK) {
-                            if (is.null(private$typeData)) {
-                              private$defaultVal <- as.character(defaultVal)
-                            } else if (!is.null(defaultVal)) {
-                              private$defaultVal <- corrected_input(defaultVal, self)
-                            }
-                          }
+                          private$defaultVal <- defaultVal                          
                           invisible(self)
+                        },
+                      
+                        set_defaultValUserDefined = function(fmla) {
+                          # one sided formula interface will be used
+                          # ~ Sys.Date(), ~ "suman", ~ 2, etc.
+                          # in shiny, formula("~ Sys.Date()") will be used to extract formula
+                          private$defaultValUserDefined <- fmla[[2]]
+                          invisible(self)
+                          
                         },
 
                         set_validationStatements = function(...) {
-
-                          private$validation_statements <- lazyeval::lazy_dots(...)
+                          # comma separated one sided formula interfaces
+                          # ~ .. < Sys.Date(), ~ .. == "suman", ~ .. > 2, etc.
+                          # in shiny, strsplit(;) and formula("~ .. < Sys.Date()") will be used to extract formula 
+                          private$validation_statements <- list(...)
 
                         },
 
@@ -196,6 +201,17 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                       
                         set_selectTextCol = function(textCol) {
                           private$selectTextCol <- as.character(textCol)
+                          invisible(self)
+                        },
+                      
+                        set_tabIndex = function(index) {
+                          
+                          available_ind <- vapply(self$get_parentTable()$get_columns(), function(x) x$get_tabIndex(), integer(1L))
+                          if (index %in% available_ind) {
+                            stop(paste0("tab index: ", index, " is already present"))
+                          }
+                          
+                          private$tabIndex <- as.integer(index)
                           invisible(self)
                         },
                       
@@ -266,6 +282,10 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                         get_defaultVal = function() {
                           return(private$defaultVal)
                         },
+                      
+                        get_defaultValUserDefined = function() {
+                          return(private$defaultValUserDefined)
+                        },
 
                         get_valToDB = function() {
                           return(private$valToDB)
@@ -297,6 +317,10 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                       
                         get_selectTextCol = function() {
                           return(private$selectTextCol)
+                        },
+                        
+                        get_tabIndex = function() {
+                          private$tabIndex
                         }
 
                       ),
@@ -318,6 +342,7 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           varSize =  NULL,
                           isRequired = NULL,   # Whether the column can be kept empty (1, 0)
                           defaultVal = NULL,   # Default value of the column
+                          defaultValUserDefined = NULL,   # default value as provided by user
                           validation_statements = NULL,
                           cacheVal = NULL,      # integer denoting number of list of values to be stored
                           valToDB = NULL,      # vector of values from front (to be inserted into database)
@@ -327,7 +352,8 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           date_input = NULL,
                           isSelect = NULL,
                           selectValCol = NULL,   # if select widget, vector of values
-                          selectTextCol = NULL   # if select widget, vector of texts
+                          selectTextCol = NULL,   # if select widget, vector of texts
+                          tabindex = NULL        # tab index for the shiny web page
                     ))
 
 

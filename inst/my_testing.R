@@ -450,3 +450,7 @@ err_from_db <- function(src, expr, env = parent.env()) {
 
 }
 
+default_val <- function(expr = NULL) {
+  lazyeval::lazy(expr)
+}
+

@@ -76,6 +76,14 @@ prepare_cols_for_insertion <- function(src, table, name_token_col = NULL) {
     if (!is.null(name_token_col) && (coli$get_name() == name_token_col)) {
       coli$add_valToDB(cur_timestamp())
     }
+    
+    # check for default value provided by user, no value for the column 
+    # and replace value with user defined default value
+    
+    if ((is.null(coli$get_valToDB()) || is.na(coli$get_valToDB())) &&
+        !is.null(coli$get_defaultValUserDefined())) {
+      coli$add_valToDB(eval(coli$get_defaultValUserDefined()))
+    }
 
     # check for NULL field
     if (!is_nothing_allowed(coli)) {

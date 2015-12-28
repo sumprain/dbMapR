@@ -115,8 +115,9 @@ test_that("table1 data types are correct", {
 # check table1 default values
 
 dflt_val_tb1 <- sapply(tb1$get_columns(), function(x) x$get_defaultVal())
+
 test_that("table1 has correct default values", {
-  expect_equal(as.character(dflt_val_tb1), c("NULL", NA, "1", "NA", "NA", "NA", NA))
+  expect_equal(as.character(dflt_val_tb1), c(NA_character_, NA_character_, "1", NA_character_, NA_character_, NA_character_, NA_character_))
 })
 
 # check table1 is required values

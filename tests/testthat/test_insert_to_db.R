@@ -106,7 +106,7 @@ col1 <- dbColumnClass$new(name = "col1",
                           defaultVal = 1,
                           typeData = "integer")
 
-col1$set_validationStatements(.. > 10, .. <= 20)
+col1$set_validationStatements(~ (.. > 10), ~ (.. <= 20))
 
 f_val1 <- function() {
   col1$add_valToDB(15)
@@ -134,7 +134,7 @@ col1 <- dbColumnClass$new(name = "col1",
                           typeData = "date",
                           date_input = "ymd")
 
-col1$set_validationStatements(.. < lubridate::today())
+col1$set_validationStatements(~ (.. < lubridate::today()))
 
 f_val3 <- function() {
   col1$add_valToDB("2015/09/09")
@@ -208,7 +208,6 @@ f_scen1 <- function() {
 f_scen2 <- function() {
 
   # colint is null and has default val and is required: expect_no_error and col_val is default_val
-
   cols$colchar$add_valToDB("suman")
   cols$colint$revert_valToDB_null()
   cols$colreal$add_valToDB(1.89)
@@ -311,5 +310,47 @@ test_that("Database insert is appropriately done", {
   expect_error(f_scen_nopk(), "Table: table3 does not have PK.")
 })
 
+
+db1$disconnect()
+
+rm(db1, tb1, cols)
+
+# checking correctness of user defined default values (user defined default values overrides the database generated default value)
+
+src_sq <- dplyr::src_sqlite(path = tempfile(), create = TRUE)
+
+DBI::dbSendQuery(src_sq$con, "CREATE TABLE table1 (
+                 id integer PRIMARY KEY,
+                 colchar varchar NOT NULL,
+                 colint integer NOT NULL DEFAULT 100,
+                 colreal real DEFAULT 20.01,
+                 coldate date,
+                 colbool boolean NOT NULL,
+                 coltimestamp char NOT NULL)
+                 ")
+
+DBI::dbClearResult(src_sq$con)
+
+db1 <- dbDatabaseClass$new(src_sq, date_input = "ymd")
+
+tb1 <- db1$get_tables()$table1
+cols <- tb1$get_columns()
+
+cols$colint$set_defaultValUserDefined(~ 20L)
+cols$coldate$set_defaultValUserDefined(~ Sys.Date())
+
+f_scen10 <- function() {
+  cols$colchar$add_valToDB("suman")
+  cols$colbool$add_valToDB(TRUE)
+  
+  tb1$insertIntoDB(token_col_name = "coltimestamp")
+  
+  return(DBI::dbGetQuery(src_sq$con, "select * from table1")[, -7])
+  
+}
+
+test_that("User defined default value is properly inserted", {
+  expect_equal(f_scen10(), data.frame(id = 1, colchar = "suman", colint = 20, colreal = 20.01, coldate = as.character(Sys.Date()), colbool = 1, stringsAsFactors = FALSE))
+})
 
 db1$disconnect()
