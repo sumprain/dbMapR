@@ -158,7 +158,7 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           # comma separated one sided formula interfaces
                           # ~ .. < Sys.Date(), ~ .. == "suman", ~ .. > 2, etc.
                           # in shiny, strsplit(;) and formula("~ .. < Sys.Date()") will be used to extract formula 
-                          private$validation_statements <- list(...)
+                          private$validationStatements <- list(...)
 
                         },
 
@@ -202,6 +202,18 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                         set_selectTextCol = function(textCol) {
                           private$selectTextCol <- as.character(textCol)
                           invisible(self)
+                        },
+                      
+                        set_selectTblName = function(tblName) {
+                          private$selectTblName <- tblName
+                        },
+                      
+                        set_selectValColName = function(colName) {
+                          private$selectValColName <- colName
+                        },
+                      
+                        set_selectTextColName = function(colName) {
+                          private$selectTextColName <- colName
                         },
                       
                         set_tabIndex = function(index) {
@@ -304,7 +316,7 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                         },
 
                         get_validationStatements = function() {
-                          return(private$validation_statements)
+                          return(private$validationStatements)
                         },
                       
                         get_isSelect = function() {
@@ -317,6 +329,18 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                       
                         get_selectTextCol = function() {
                           return(private$selectTextCol)
+                        },
+                      
+                        get_selectTblName = function() {
+                          private$selectTblName
+                        },
+                        
+                        get_selectValColName = function() {
+                          private$selectValColName
+                        },
+                        
+                        get_selectTextColName = function() {
+                          private$selectTextColName
                         },
                         
                         get_tabIndex = function() {
@@ -343,7 +367,7 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           isRequired = NULL,   # Whether the column can be kept empty (1, 0)
                           defaultVal = NULL,   # Default value of the column
                           defaultValUserDefined = NULL,   # default value as provided by user
-                          validation_statements = NULL,
+                          validationStatements = NULL,
                           cacheVal = NULL,      # integer denoting number of list of values to be stored
                           valToDB = NULL,      # vector of values from front (to be inserted into database)
                           queue_valToDB = NULL,
@@ -353,7 +377,10 @@ dbColumnClass <- R6::R6Class('dbColumnClass',
                           isSelect = NULL,
                           selectValCol = NULL,   # if select widget, vector of values
                           selectTextCol = NULL,   # if select widget, vector of texts
-                          tabindex = NULL        # tab index for the shiny web page
+                          selectTblName = NULL,   # if from DB, name of table
+                          selectValColName = NULL,  # if from DB name of col for val
+                          selectTextColName = NULL,  # if from DB name of col for text
+                          tabIndex = NULL        # tab index for the shiny web page
                     ))
 
 
